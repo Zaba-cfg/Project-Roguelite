@@ -1,4 +1,4 @@
-# Project Echo
+# Project-Roguelite
 
 ## Goal
 
