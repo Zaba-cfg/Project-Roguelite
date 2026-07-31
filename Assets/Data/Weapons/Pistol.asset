@@ -12,3 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a155e93dcba69f4bba3ab8af5e1b99b, type: 3}
   m_Name: Pistol
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
+  _weaponName: Pistol
+  _icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
+  _damage: 10
+  _fireRate: 4
+  _magazineSize: 20
+  _weaponFireStrategy: {fileID: 11400000, guid: dacc133eb8057f54582c8a89360d2d43, type: 2}

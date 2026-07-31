@@ -10,6 +10,14 @@ public class WeaponHolder : MonoBehaviour
     {
         if (_weaponSocket == null) throw new MissingReferenceException($"{name} is missing a socket.");
     }
+    
+    //ONLY FOR TESTING
+    [SerializeField] private Weapon arma;
+    private void Start()
+    {
+        Equip(arma);
+    }
+    //ONLY FOR TESTING
 
     public void Equip(Weapon weapon)
     {
@@ -41,11 +49,18 @@ public class WeaponHolder : MonoBehaviour
 
         Weapon weapon = CurrentWeapon;
         
-        weapon = null;
+        CurrentWeapon = null;
         
         weapon.OnDropped();
         
         weapon.transform.SetParent(null);
         
+    }
+
+    public void TryFire(Vector2 direction)
+    {
+        if (CurrentWeapon == null) return;
+        
+        CurrentWeapon.TryFire(direction);
     }
 }
