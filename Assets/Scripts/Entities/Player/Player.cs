@@ -3,12 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerInput))]
 [RequireComponent(typeof(LookDirection))]
 [RequireComponent(typeof(WeaponHolder))]
+[RequireComponent(typeof(Interaction))]
 
 public class Player : MonoBehaviour
 {
     private PlayerInput _playerInput;
     private LookDirection _lookDirection;
     private WeaponHolder _weaponHolder;
+    private Interaction _interaction;
     private Camera _mainCamera;
 
     private void Awake()
@@ -17,6 +19,7 @@ public class Player : MonoBehaviour
         _playerInput = GetComponent<PlayerInput>();
         _lookDirection = GetComponent<LookDirection>();
         _weaponHolder = GetComponent<WeaponHolder>();
+        _interaction = GetComponent<Interaction>();
     }
     
     private void Update()
@@ -51,10 +54,12 @@ public class Player : MonoBehaviour
     private void OnEnable()
     {
         _playerInput.FirePressed += HandleFire;
+        _playerInput.InteractPressed += _interaction.Interact;
     }
 
     private void OnDisable()
     {
         _playerInput.FirePressed -= HandleFire;
+        _playerInput.InteractPressed -= _interaction.Interact;
     }
 }

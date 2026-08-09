@@ -10,51 +10,45 @@ public class WeaponHolder : MonoBehaviour
     {
         if (_weaponSocket == null) throw new MissingReferenceException($"{name} is missing a socket.");
     }
-    
-    //ONLY FOR TESTING
-    [SerializeField] private Weapon gun;
-    private void Start()
-    {
-        Equip(gun);
-    }
-    //ONLY FOR TESTING
 
     public void Equip(Weapon weapon)
     {
-        if (CurrentWeapon == weapon) return;
-        
-        if (weapon == null) throw new ArgumentNullException(nameof(weapon));
-        
-        if (weapon.IsEquipped) weapon.CurrentHolder.DropCurrentWeapon();
+        if (weapon == null)
+            throw new ArgumentNullException(nameof(weapon));
+
+        if (CurrentWeapon == weapon)
+            return;
+
+        if (CurrentWeapon != null)
+            DropCurrentWeapon();
+
+        if (weapon.IsEquipped)
+            weapon.CurrentHolder.DropCurrentWeapon();
 
         CurrentWeapon = weapon;
-        
+
         weapon.OnEquipped(this);
-        
+
         Transform weaponTransform = weapon.transform;
-        
+
         weaponTransform.SetParent(_weaponSocket);
-        
+
         weaponTransform.localPosition = Vector3.zero;
-        
         weaponTransform.localRotation = Quaternion.identity;
     }
 
     public void DropCurrentWeapon()
     {
         if (CurrentWeapon == null)
-        {
             throw new InvalidOperationException($"{name} does not have a weapon to drop.");
-        }
 
         Weapon weapon = CurrentWeapon;
-        
+
         CurrentWeapon = null;
-        
+
         weapon.OnDropped();
-        
+
         weapon.transform.SetParent(null);
-        
     }
 
     public void TryFire(Vector2 direction)

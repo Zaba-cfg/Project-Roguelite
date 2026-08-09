@@ -10,6 +10,7 @@ public class PlayerInput : MonoBehaviour, IMoveInput
     public AimDevice CurrentAimDevice { get; private set; } = AimDevice.Mouse;
     
     public event Action FirePressed;
+    public event Action InteractPressed;
     
     private PlayerInputActions _playerInputActions;
     private Vector2 _lastPointerPosition;
@@ -17,6 +18,11 @@ public class PlayerInput : MonoBehaviour, IMoveInput
     private void Awake()
     {
         _playerInputActions = new PlayerInputActions();
+    }
+    
+    private void OnInteractPerformed(InputAction.CallbackContext obj)
+    {
+        InteractPressed?.Invoke();
     }
     
     private void OnFirePerformed(InputAction.CallbackContext obj)
@@ -65,6 +71,7 @@ public class PlayerInput : MonoBehaviour, IMoveInput
     private void OnEnable()
     {
         _playerInputActions.Enable();
+        _playerInputActions.Player.Interact.performed += OnInteractPerformed;
         _playerInputActions.Player.Fire.performed += OnFirePerformed;
         _playerInputActions.Player.Move.performed += OnMovePerformed;
         _playerInputActions.Player.Move.canceled += OnMoveCanceled;
@@ -75,6 +82,7 @@ public class PlayerInput : MonoBehaviour, IMoveInput
 
     private void OnDisable()
     {
+        _playerInputActions.Player.Interact.performed -= OnInteractPerformed;
         _playerInputActions.Player.Fire.performed -= OnFirePerformed;
         _playerInputActions.Player.Move.performed -= OnMovePerformed;
         _playerInputActions.Player.Move.canceled -= OnMoveCanceled;
