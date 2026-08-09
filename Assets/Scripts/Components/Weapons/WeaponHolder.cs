@@ -12,10 +12,10 @@ public class WeaponHolder : MonoBehaviour
     }
     
     //ONLY FOR TESTING
-    [SerializeField] private Weapon arma;
+    [SerializeField] private Weapon gun;
     private void Start()
     {
-        Equip(arma);
+        Equip(gun);
     }
     //ONLY FOR TESTING
 
