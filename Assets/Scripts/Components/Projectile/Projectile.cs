@@ -45,6 +45,9 @@ public class Projectile : MonoBehaviour
             return;
         }
 
+        if (other.isTrigger)
+            return;
+
         if (other.TryGetComponent(out Health health))
         {
             health.TakeDamage(_damage);

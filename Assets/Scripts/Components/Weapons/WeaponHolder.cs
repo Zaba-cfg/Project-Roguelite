@@ -5,10 +5,20 @@ public class WeaponHolder : MonoBehaviour
 {
     [SerializeField] private Transform _weaponSocket;
     public Weapon CurrentWeapon { get; private set; }
+    
+    public bool HasWeapon => CurrentWeapon != null;
 
     private void Awake()
     {
         if (_weaponSocket == null) throw new MissingReferenceException($"{name} is missing a socket.");
+    }
+    
+    public void Reload()
+    {
+        if (CurrentWeapon == null)
+            return;
+
+        CurrentWeapon.Reload();
     }
 
     public void Equip(Weapon weapon)

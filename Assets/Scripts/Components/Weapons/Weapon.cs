@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Weapon : MonoBehaviour
@@ -7,6 +8,7 @@ public class Weapon : MonoBehaviour
     
     private WeaponHolder _currentHolder;
     private float _nextFireTime;
+    private float _reloadEndTime;
     
     public WeaponHolder CurrentHolder => _currentHolder;
     public bool IsEquipped => _currentHolder != null;
@@ -16,6 +18,8 @@ public class Weapon : MonoBehaviour
     public GameObject Owner => CurrentHolder.gameObject;
     
     public int CurrentAmmo { get; private set; }
+    public bool IsReloading { get; private set; }
+    public int ReserveAmmo { get; private set; }
 
     private void Awake()
     {
@@ -26,15 +30,32 @@ public class Weapon : MonoBehaviour
             throw new MissingReferenceException($"{name} is missing Muzzle");
         
         CurrentAmmo = _weaponData.MagazineSize;
+        ReserveAmmo = _weaponData.MaxReserveAmmo;
+    }
+
+    private void Update()
+    {
+        if (!IsReloading)
+            return;
+        if (Time.time < _reloadEndTime)
+            return;
+
+        CompleteReload();
     }
 
     public WeaponFireResult TryFire(Vector2 direction)
     {
-        if (!IsEquipped) return WeaponFireResult.NotEquipped;
+        if (!IsEquipped) 
+            return WeaponFireResult.NotEquipped;
 
-        if (Time.time < _nextFireTime) return WeaponFireResult.Cooldown;
+        if (IsReloading)
+            return WeaponFireResult.Reloading;
 
-        if (CurrentAmmo <= 0) return WeaponFireResult.NoAmmo;
+        if (Time.time < _nextFireTime) 
+            return WeaponFireResult.Cooldown;
+
+        if (CurrentAmmo <= 0) 
+            return WeaponFireResult.NoAmmo;
         
         CurrentAmmo--;
 
@@ -44,7 +65,35 @@ public class Weapon : MonoBehaviour
 
         return WeaponFireResult.Success;
     }
+    
+    public void Reload()
+    {
+        if (!IsEquipped)
+            return;
+        if (IsReloading)
+            return;
+        if (CurrentAmmo == WeaponData.MagazineSize)
+            return;
+        if (ReserveAmmo <= 0)
+            return;
+        
+        IsReloading = true;
 
+        _reloadEndTime = Time.time + _weaponData.ReloadDuration;
+    }
+
+    private void CompleteReload()
+    {
+        int ammoNeeded = WeaponData.MagazineSize - CurrentAmmo;
+        int ammoLoaded = Mathf.Min(ammoNeeded, ReserveAmmo);
+
+        CurrentAmmo += ammoLoaded;
+        ReserveAmmo -= ammoLoaded;
+
+        IsReloading = false;
+        Debug.Log("Weapon Reloaded");
+    }
+    
     public void OnEquipped(WeaponHolder holder)
     {
         _currentHolder = holder;
@@ -53,5 +102,6 @@ public class Weapon : MonoBehaviour
     public void OnDropped()
     {
         _currentHolder = null;
+        IsReloading = false;
     }
 }

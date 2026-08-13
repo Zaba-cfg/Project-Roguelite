@@ -51,14 +51,21 @@ public class Player : MonoBehaviour
         _weaponHolder.TryFire(_lookDirection.Forward);
     }
     
+    private void HandleReload()
+    {
+        _weaponHolder.Reload();
+    }
+    
     private void OnEnable()
     {
+        _playerInput.ReloadPressed += HandleReload;
         _playerInput.FirePressed += HandleFire;
         _playerInput.InteractPressed += _interaction.Interact;
     }
 
     private void OnDisable()
     {
+        _playerInput.ReloadPressed -= HandleReload;
         _playerInput.FirePressed -= HandleFire;
         _playerInput.InteractPressed -= _interaction.Interact;
     }

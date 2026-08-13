@@ -3,5 +3,6 @@ public enum WeaponFireResult
     Success,
     NotEquipped,
     Cooldown,
-    NoAmmo
+    NoAmmo,
+    Reloading
 }
