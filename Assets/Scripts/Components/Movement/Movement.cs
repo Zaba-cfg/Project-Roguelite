@@ -15,9 +15,7 @@ public class Movement : MonoBehaviour
         _moveInput = GetComponent<IMoveInput>();
         
         if (_moveInput == null)
-        {
             throw new MissingComponentException($"{name} requires a component implementing IMoveInput.");
-        }
     }
 
     private void FixedUpdate()

@@ -23,8 +23,7 @@ public class Projectile : MonoBehaviour
     public void Initialize(Vector2 direction, float damage, GameObject owner)
     {
         if (direction == Vector2.zero)
-            throw new ArgumentException(
-                $"{name} cannot have a zero direction.");
+            throw new ArgumentException($"{name} cannot have a zero direction.");
 
         if (owner == null)
             throw new ArgumentNullException(nameof(owner));
@@ -39,19 +38,14 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject == _owner ||
-            other.transform.IsChildOf(_owner.transform))
-        {
+        if (other.gameObject == _owner || other.transform.IsChildOf(_owner.transform))
             return;
-        }
 
         if (other.isTrigger)
             return;
 
         if (other.TryGetComponent(out Health health))
-        {
             health.TakeDamage(_damage);
-        }
 
         Destroy(gameObject);
     }

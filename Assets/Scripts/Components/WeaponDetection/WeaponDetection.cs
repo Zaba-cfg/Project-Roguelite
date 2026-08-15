@@ -21,19 +21,13 @@ public class WeaponDetection : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.TryGetComponent(out Weapon weapon)
-            && !_weapons.Contains(weapon))
-        {
+        if (collision.TryGetComponent(out Weapon weapon) && !_weapons.Contains(weapon))
             _weapons.Add(weapon);
-        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.TryGetComponent(out Weapon weapon)
-            && _weapons.Contains(weapon))
-        {
+        if (collision.TryGetComponent(out Weapon weapon)&& _weapons.Contains(weapon))
             _weapons.Remove(weapon);
-        }
     }
 }

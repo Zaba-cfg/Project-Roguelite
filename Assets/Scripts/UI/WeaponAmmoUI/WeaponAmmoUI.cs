@@ -26,9 +26,7 @@ public class WeaponAmmoUI : MonoBehaviour
     private void HandleWeaponChanged(Weapon weapon)
     {
         if (_currentWeapon != null)
-        {
             _currentWeapon.AmmoChanged -= OnAmmoChanged;
-        }
         
         _currentWeapon = weapon;
 

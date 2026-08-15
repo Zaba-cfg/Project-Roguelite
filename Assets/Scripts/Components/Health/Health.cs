@@ -20,8 +20,10 @@ public class Health : MonoBehaviour
     
     public void RestoreFullHealth()
     {
-        if (IsDead) return;
-        if (CurrentHealth == MaxHealth) return;
+        if (IsDead)
+            return;
+        if (CurrentHealth == MaxHealth)
+            return;
         var previousHealth = CurrentHealth;
         CurrentHealth = MaxHealth;
         HealthChanged?.Invoke(previousHealth, CurrentHealth);
@@ -29,8 +31,10 @@ public class Health : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        if (damage <= 0f) return;
-        if (IsDead) return;
+        if (damage <= 0f)
+            return;
+        if (IsDead)
+            return;
         
         var previousHealth = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
@@ -43,9 +47,12 @@ public class Health : MonoBehaviour
 
     public void Heal(float amount)
     {
-        if (amount <= 0f) return;
-        if (IsDead) return;
-        if (CurrentHealth == MaxHealth) return;
+        if (amount <= 0f)
+            return;
+        if (IsDead)
+            return;
+        if (CurrentHealth == MaxHealth)
+            return;
         
         var previousHealth = CurrentHealth;
         CurrentHealth = Mathf.Min(CurrentHealth + amount, MaxHealth);

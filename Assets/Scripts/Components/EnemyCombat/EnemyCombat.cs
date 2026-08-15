@@ -2,10 +2,12 @@ using UnityEngine;
 
 [RequireComponent(typeof(WeaponHolder))]
 [RequireComponent(typeof(LookDirection))]
+
 public class EnemyCombat : MonoBehaviour
 {
     [SerializeField] private Transform _target;
     [SerializeField] private float _attackRange = 5f;
+    
     private WeaponHolder _weaponHolder;
     private LookDirection _lookDirection;
 
