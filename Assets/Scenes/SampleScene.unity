@@ -593,7 +593,6 @@ GameObject:
   - component: {fileID: 711420579}
   - component: {fileID: 711420578}
   - component: {fileID: 711420584}
-  - component: {fileID: 711420585}
   - component: {fileID: 711420587}
   - component: {fileID: 711420586}
   m_Layer: 0
@@ -841,18 +840,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
   _target: {fileID: 2061168575}
   _attackRange: 5
---- !u!114 &711420585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 711420570}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d08555cc013def947ba63a730bb96463, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HealthDebugger
 --- !u!114 &711420586
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -928,6 +915,7 @@ GameObject:
   - component: {fileID: 746726484}
   - component: {fileID: 746726483}
   - component: {fileID: 746726482}
+  - component: {fileID: 746726488}
   m_Layer: 0
   m_Name: Pistol (1)
   m_TagString: Untagged
@@ -1085,6 +1073,18 @@ Transform:
   - {fileID: 1933319267}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &746726488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 746726481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4182c459e498cae4a903d1715c88a799, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponDebugger
 --- !u!1 &1933319266
 GameObject:
   m_ObjectHideFlags: 0

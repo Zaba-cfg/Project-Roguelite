@@ -3,6 +3,11 @@ using UnityEngine;
 
 public class Weapon : MonoBehaviour
 {
+    public event Action WeaponFired;
+    public event Action<int, int> AmmoChanged;
+    public event Action ReloadStarted;
+    public event Action ReloadCompleted;
+    
     [SerializeField] private WeaponData _weaponData;
     [SerializeField] private Transform _muzzle;
     
@@ -57,11 +62,17 @@ public class Weapon : MonoBehaviour
         if (CurrentAmmo <= 0) 
             return WeaponFireResult.NoAmmo;
         
+        int previousAmmo = CurrentAmmo;
+        
         CurrentAmmo--;
+        
+        AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
 
         _nextFireTime = Time.time + (1f / _weaponData.FireRate);
         
         _weaponData.WeaponFireStrategy.Execute(this, direction);
+        
+        WeaponFired?.Invoke();
 
         return WeaponFireResult.Success;
     }
@@ -78,12 +89,16 @@ public class Weapon : MonoBehaviour
             return;
         
         IsReloading = true;
+        
+        ReloadStarted?.Invoke();
 
         _reloadEndTime = Time.time + _weaponData.ReloadDuration;
     }
 
     private void CompleteReload()
     {
+        int previousAmmo = CurrentAmmo;
+        
         int ammoNeeded = WeaponData.MagazineSize - CurrentAmmo;
         int ammoLoaded = Mathf.Min(ammoNeeded, ReserveAmmo);
 
@@ -91,7 +106,9 @@ public class Weapon : MonoBehaviour
         ReserveAmmo -= ammoLoaded;
 
         IsReloading = false;
-        Debug.Log("Weapon Reloaded");
+        
+        AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
+        ReloadCompleted?.Invoke();
     }
     
     public void OnEquipped(WeaponHolder holder)
