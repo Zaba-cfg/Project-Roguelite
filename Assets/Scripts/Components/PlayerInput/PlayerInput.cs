@@ -7,6 +7,7 @@ public class PlayerInput : MonoBehaviour, IMoveInput
     public Vector2 MoveInput { get; private set; }
     public Vector2 LookPointer { get; private set; }
     public Vector2 LookStick { get; private set; }
+    public bool FireHeld { get; private set; }
     public AimDevice CurrentAimDevice { get; private set; } = AimDevice.Mouse;
     
     public event Action FirePressed;
@@ -33,7 +34,13 @@ public class PlayerInput : MonoBehaviour, IMoveInput
     
     private void OnFirePerformed(InputAction.CallbackContext obj)
     {
+        FireHeld = true;
         FirePressed?.Invoke();
+    }
+    
+    private void OnFireCanceled(InputAction.CallbackContext context)
+    {
+        FireHeld = false;
     }
     
     private void OnMovePerformed(InputAction.CallbackContext obj)
@@ -80,6 +87,7 @@ public class PlayerInput : MonoBehaviour, IMoveInput
         _playerInputActions.Player.Reload.performed += OnReloadPerformed;
         _playerInputActions.Player.Interact.performed += OnInteractPerformed;
         _playerInputActions.Player.Fire.performed += OnFirePerformed;
+        _playerInputActions.Player.Fire.canceled += OnFireCanceled;
         _playerInputActions.Player.Move.performed += OnMovePerformed;
         _playerInputActions.Player.Move.canceled += OnMoveCanceled;
         _playerInputActions.Player.LookPointer.performed += OnLookPointerPerformed;
@@ -92,6 +100,7 @@ public class PlayerInput : MonoBehaviour, IMoveInput
         _playerInputActions.Player.Reload.performed -= OnReloadPerformed;
         _playerInputActions.Player.Interact.performed -= OnInteractPerformed;
         _playerInputActions.Player.Fire.performed -= OnFirePerformed;
+        _playerInputActions.Player.Fire.canceled -= OnFireCanceled;
         _playerInputActions.Player.Move.performed -= OnMovePerformed;
         _playerInputActions.Player.Move.canceled -= OnMoveCanceled;
         _playerInputActions.Player.LookPointer.performed -= OnLookPointerPerformed;

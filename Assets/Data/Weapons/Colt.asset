@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a155e93dcba69f4bba3ab8af5e1b99b, type: 3}
-  m_Name: Pistol
+  m_Name: Colt
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
-  _weaponName: Pistol
+  _weaponName: Colt
   _icon: {fileID: 0}
-  _damage: 10
-  _fireRate: 3
-  _magazineSize: 20
+  _damage: 5
+  _fireRate: 10
+  _magazineSize: 30
   _weaponFireStrategy: {fileID: 11400000, guid: dacc133eb8057f54582c8a89360d2d43, type: 2}
-  _reloadDuration: 2
-  _maxReserveAmmo: 30
+  _reloadDuration: 5
+  _maxReserveAmmo: 90

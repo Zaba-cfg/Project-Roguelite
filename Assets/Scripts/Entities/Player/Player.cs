@@ -25,6 +25,15 @@ public class Player : MonoBehaviour
     private void Update()
     {
         UpdateLookDirection();
+        UpdateFire();
+    }
+    
+    private void UpdateFire()
+    {
+        if (!_playerInput.FireHeld)
+            return;
+
+        _weaponHolder.TryFire(_lookDirection.Forward);
     }
 
     private void UpdateLookDirection()

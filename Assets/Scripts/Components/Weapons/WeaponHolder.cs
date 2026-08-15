@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class WeaponHolder : MonoBehaviour
 {
+    public event Action<Weapon> WeaponChanged;
+    
     [SerializeField] private Transform _weaponSocket;
     public Weapon CurrentWeapon { get; private set; }
     
@@ -45,6 +47,8 @@ public class WeaponHolder : MonoBehaviour
 
         weaponTransform.localPosition = Vector3.zero;
         weaponTransform.localRotation = Quaternion.identity;
+        
+        WeaponChanged?.Invoke(weapon);
     }
 
     public void DropCurrentWeapon()
@@ -59,6 +63,8 @@ public class WeaponHolder : MonoBehaviour
         weapon.OnDropped();
 
         weapon.transform.SetParent(null);
+        
+        WeaponChanged?.Invoke(null);
     }
 
     public void TryFire(Vector2 direction)
