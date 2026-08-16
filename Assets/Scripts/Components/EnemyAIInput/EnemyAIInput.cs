@@ -12,7 +12,8 @@ public class EnemyAIInput : MonoBehaviour, IMoveInput
 
     private void Update()
     {
-        MoveInput = Target.position - transform.position;
+        if (Target != null)
+            MoveInput = Target.position - transform.position;
     }
     
     public void SetTarget(Transform target)

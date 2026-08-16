@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 
+[RequireComponent(typeof(ModifierController))]
+
 public class Weapon : MonoBehaviour
 {
     public event Action WeaponFired;
@@ -11,6 +13,7 @@ public class Weapon : MonoBehaviour
     [SerializeField] private WeaponData _weaponData;
     [SerializeField] private Transform _muzzle;
     
+    private ModifierController _modifierController;
     private WeaponHolder _currentHolder;
     private float _nextFireTime;
     private float _reloadEndTime;
@@ -19,7 +22,9 @@ public class Weapon : MonoBehaviour
     public WeaponHolder CurrentHolder => _currentHolder;
     public bool IsEquipped => _currentHolder != null;
     public WeaponData WeaponData => _weaponData;
-    public float Damage => WeaponData.Damage;
+    public float Damage => _modifierController.CalculateValue(WeaponData.Damage, ModifierStat.Damage);
+    public float FireRate => _modifierController.CalculateValue(WeaponData.FireRate, ModifierStat.FireRate);
+    public float ReloadDuration => _modifierController.CalculateValue(WeaponData.ReloadDuration, ModifierStat.ReloadDuration);
     public Transform Muzzle => _muzzle;
     public GameObject Owner => CurrentHolder.gameObject;
     
@@ -34,6 +39,8 @@ public class Weapon : MonoBehaviour
 
         if (_muzzle == null)
             throw new MissingReferenceException($"{name} is missing Muzzle");
+        
+        _modifierController = GetComponent<ModifierController>();
         
         CurrentAmmo = _weaponData.MagazineSize;
         ReserveAmmo = _weaponData.MaxReserveAmmo;
@@ -69,7 +76,7 @@ public class Weapon : MonoBehaviour
         
         AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
 
-        _nextFireTime = Time.time + (1f / _weaponData.FireRate);
+        _nextFireTime = Time.time + (1f / FireRate);
         
         _weaponData.WeaponFireStrategy.Execute(this, direction);
         
@@ -93,7 +100,7 @@ public class Weapon : MonoBehaviour
         
         ReloadStarted?.Invoke();
 
-        _reloadEndTime = Time.time + _weaponData.ReloadDuration;
+        _reloadEndTime = Time.time + ReloadDuration;
     }
 
     private void CompleteReload()
