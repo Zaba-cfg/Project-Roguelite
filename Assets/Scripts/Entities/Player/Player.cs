@@ -1,6 +1,8 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Health))]
 [RequireComponent(typeof(PlayerInput))]
+[RequireComponent(typeof(Movement))]
 [RequireComponent(typeof(LookDirection))]
 [RequireComponent(typeof(WeaponHolder))]
 [RequireComponent(typeof(Interaction))]

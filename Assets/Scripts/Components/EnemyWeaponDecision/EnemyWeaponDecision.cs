@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class EnemyWeaponDecision : MonoBehaviour
 {
+    [SerializeField] private float _pickupRange = 0.75f;
+    
     private WeaponDetection _weaponDetection;
     private WeaponHolder _weaponHolder;
 
@@ -14,17 +16,31 @@ public class EnemyWeaponDecision : MonoBehaviour
         _weaponHolder = GetComponent<WeaponHolder>();
     }
 
-    private void Update()
+    public bool TryEquipNearbyWeapon()
     {
         if (_weaponHolder.HasWeapon)
-            return;
-        
+            return false;
+
+        Weapon weapon = GetClosestAvailableWeapon();
+
+        if (weapon == null)
+            return false;
+
+        _weaponHolder.Equip(weapon);
+        return true;
+    }
+
+    public Weapon GetClosestAvailableWeapon()
+    {
         Weapon closestWeapon = null;
         float closestDistance = float.MaxValue;
-        
+
         foreach (Weapon weapon in _weaponDetection.Weapons)
         {
             if (weapon.IsEquipped)
+                continue;
+
+            if (weapon.IsEmpty)
                 continue;
 
             float distance = (weapon.transform.position - transform.position).sqrMagnitude;
@@ -35,9 +51,18 @@ public class EnemyWeaponDecision : MonoBehaviour
                 closestWeapon = weapon;
             }
         }
-        if (closestWeapon == null)
-            return;
-        
-        _weaponHolder.Equip(closestWeapon);
+
+        return closestWeapon;
+    }
+
+    public bool IsWeaponInPickupRange(Weapon weapon)
+    {
+        if (weapon == null)
+            return false;
+
+        float distanceSquared =
+            (weapon.transform.position - transform.position).sqrMagnitude;
+
+        return distanceSquared <= _pickupRange * _pickupRange;
     }
 }

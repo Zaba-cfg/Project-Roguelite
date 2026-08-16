@@ -15,6 +15,7 @@ public class Weapon : MonoBehaviour
     private float _nextFireTime;
     private float _reloadEndTime;
     
+    public bool IsEmpty => CurrentAmmo <= 0 && ReserveAmmo <= 0;
     public WeaponHolder CurrentHolder => _currentHolder;
     public bool IsEquipped => _currentHolder != null;
     public WeaponData WeaponData => _weaponData;
