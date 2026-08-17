@@ -1,12 +1,12 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(ModifierController))]
+[RequireComponent(typeof(ModifierInventory))]
 
 public class WeaponHolder : MonoBehaviour
 {
-    private ModifierController _modifierController;
-    public IModifierProvider ModifierProvider => _modifierController;
+    private ModifierInventory _modifierInventory;
+    public IModifierProvider ModifierProvider => _modifierInventory;
     
     public event Action<Weapon> WeaponChanged;
     
@@ -19,7 +19,7 @@ public class WeaponHolder : MonoBehaviour
     {
         if (_weaponSocket == null) throw new MissingReferenceException($"{name} is missing a socket.");
         
-        _modifierController = GetComponent<ModifierController>();
+        _modifierInventory = GetComponent<ModifierInventory>();
     }
     
     public void Reload()

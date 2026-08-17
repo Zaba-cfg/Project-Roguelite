@@ -1,24 +1,51 @@
 using UnityEngine;
 
-[RequireComponent(typeof(ModifierController))]
+[RequireComponent(typeof(ModifierInventory))]
 public class ModifierDebugger : MonoBehaviour
 {
-    private ModifierController _modifierController;
-
-    [SerializeField] private float _baseValue = 10f;
+    private ModifierInventory _modifierInventory;
 
     private void Awake()
     {
-        _modifierController = GetComponent<ModifierController>();
+        _modifierInventory = GetComponent<ModifierInventory>();
     }
 
-    [ContextMenu("Test Damage")]
-    private void TestDamage()
+    private void OnEnable()
     {
-        float result = _modifierController.CalculateValue(
-            _baseValue,
-            ModifierStat.Damage);
+        _modifierInventory.ModifierAdded += OnModifierAdded;
+        _modifierInventory.ModifierRemoved += OnModifierRemoved;
+    }
 
-        Debug.Log($"Base: {_baseValue} | Modified: {result}");
+    private void OnDisable()
+    {
+        _modifierInventory.ModifierAdded -= OnModifierAdded;
+        _modifierInventory.ModifierRemoved -= OnModifierRemoved;
+    }
+
+    private void OnModifierAdded(ModifierInstance instance)
+    {
+        Debug.Log($"Modifier Added: {GetModifierDescription(instance)}");
+    }
+
+    private void OnModifierRemoved(ModifierInstance instance)
+    {
+        Debug.Log($"Modifier Removed: {GetModifierDescription(instance)}");
+    }
+
+    private string GetModifierDescription(ModifierInstance instance)
+    {
+        if (instance == null)
+            return "Null";
+
+        if (instance.Definition is StatModifierDefinition modifier)
+        {
+            string duration = instance.IsTemporary
+                ? $"Temporary ({instance.ExpirationTime - Time.time:F1}s remaining)"
+                : "Permanent";
+
+            return $"{modifier.Stat} / {modifier.Operation} / {modifier.Value} / {duration}";
+        }
+
+        return instance.Definition.name;
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   _weaponName: Mosin
   _icon: {fileID: 0}
   _damage: 30
-  _fireRate: 5
+  _fireRate: 1
   _magazineSize: 5
   _weaponFireStrategy: {fileID: 11400000, guid: dacc133eb8057f54582c8a89360d2d43, type: 2}
   _reloadDuration: 5

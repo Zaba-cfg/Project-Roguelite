@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(ModifierController))]
+[RequireComponent(typeof(ModifierInventory))]
 
 public class Weapon : MonoBehaviour
 {
@@ -13,7 +13,7 @@ public class Weapon : MonoBehaviour
     [SerializeField] private WeaponData _weaponData;
     [SerializeField] private Transform _muzzle;
     
-    private ModifierController _modifierController;
+    private ModifierInventory _modifierInventory;
     private WeaponHolder _currentHolder;
     private float _nextFireTime;
     private float _reloadEndTime;
@@ -26,7 +26,7 @@ public class Weapon : MonoBehaviour
     public float FireRate => CalculateModifiedValue(WeaponData.FireRate, ModifierStat.FireRate);
     public float ReloadDuration => CalculateModifiedValue(WeaponData.ReloadDuration, ModifierStat.ReloadDuration);
     public Transform Muzzle => _muzzle;
-    public GameObject Owner => CurrentHolder.gameObject;
+    public GameObject Owner => CurrentHolder?.gameObject;
     
     public int CurrentAmmo { get; private set; }
     public bool IsReloading { get; private set; }
@@ -40,7 +40,7 @@ public class Weapon : MonoBehaviour
         if (_muzzle == null)
             throw new MissingReferenceException($"{name} is missing Muzzle");
         
-        _modifierController = GetComponent<ModifierController>();
+        _modifierInventory = GetComponent<ModifierInventory>();
         
         CurrentAmmo = _weaponData.MagazineSize;
         ReserveAmmo = _weaponData.MaxReserveAmmo;
@@ -123,14 +123,10 @@ public class Weapon : MonoBehaviour
     {
         if (!IsEquipped)
         {
-            return _modifierController.CalculateValue(baseValue, stat);
+            return _modifierInventory.CalculateValue(baseValue, stat);
         }
 
-        return ModifierCalculator.Calculate(
-            baseValue,
-            stat,
-            _modifierController,
-            CurrentHolder.ModifierProvider);
+        return ModifierCalculator.Calculate(baseValue, stat, _modifierInventory, CurrentHolder.ModifierProvider);
     }
     
     public void OnEquipped(WeaponHolder holder)

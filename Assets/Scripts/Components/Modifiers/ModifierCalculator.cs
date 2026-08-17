@@ -11,18 +11,18 @@ public static class ModifierCalculator
             if (provider == null)
                 continue;
 
-            foreach (Modifier modifier in provider.Modifiers)
+            foreach (ModifierInstance instance in provider.Modifiers)
             {
-                if (modifier is not StatModifier statModifier)
+                if (instance?.Definition is not StatModifierDefinition modifier)
                     continue;
 
-                if (statModifier.Stat != stat)
+                if (modifier.Stat != stat)
                     continue;
 
-                if (statModifier.Operation != ModifierOperation.Add)
+                if (modifier.Operation != ModifierOperation.Add)
                     continue;
 
-                result += statModifier.Value;
+                result += modifier.Value;
             }
         }
 
@@ -31,18 +31,18 @@ public static class ModifierCalculator
             if (provider == null)
                 continue;
 
-            foreach (Modifier modifier in provider.Modifiers)
+            foreach (ModifierInstance instance in provider.Modifiers)
             {
-                if (modifier is not StatModifier statModifier)
+                if (instance?.Definition is not StatModifierDefinition modifier)
                     continue;
 
-                if (statModifier.Stat != stat)
+                if (modifier.Stat != stat)
                     continue;
 
-                if (statModifier.Operation != ModifierOperation.Multiply)
+                if (modifier.Operation != ModifierOperation.Multiply)
                     continue;
 
-                result *= statModifier.Value;
+                result *= modifier.Value;
             }
         }
 
