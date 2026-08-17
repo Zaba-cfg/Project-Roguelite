@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ModifierController : MonoBehaviour
+public class ModifierController : MonoBehaviour, IModifierProvider
 {
     private readonly List<Modifier> _modifiers = new();
 
@@ -29,6 +29,6 @@ public class ModifierController : MonoBehaviour
     
     public float CalculateValue(float baseValue, ModifierStat stat)
     {
-        return ModifierCalculator.Calculate(baseValue, stat, _modifiers);
+        return ModifierCalculator.Calculate(baseValue, stat, this);
     }
 }

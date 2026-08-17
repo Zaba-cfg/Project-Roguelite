@@ -2,36 +2,48 @@ using System.Collections.Generic;
 
 public static class ModifierCalculator
 {
-    public static float Calculate(float baseValue, ModifierStat stat, IReadOnlyList<Modifier> modifiers)
+    public static float Calculate(float baseValue, ModifierStat stat, params IModifierProvider[] providers)
     {
         float result = baseValue;
 
-        foreach (Modifier modifier in modifiers)
+        foreach (IModifierProvider provider in providers)
         {
-            if (modifier is not StatModifier statModifier)
+            if (provider == null)
                 continue;
 
-            if (statModifier.Stat != stat)
-                continue;
+            foreach (Modifier modifier in provider.Modifiers)
+            {
+                if (modifier is not StatModifier statModifier)
+                    continue;
 
-            if (statModifier.Operation != ModifierOperation.Add)
-                continue;
+                if (statModifier.Stat != stat)
+                    continue;
 
-            result += statModifier.Value;
+                if (statModifier.Operation != ModifierOperation.Add)
+                    continue;
+
+                result += statModifier.Value;
+            }
         }
 
-        foreach (Modifier modifier in modifiers)
+        foreach (IModifierProvider provider in providers)
         {
-            if (modifier is not StatModifier statModifier)
+            if (provider == null)
                 continue;
 
-            if (statModifier.Stat != stat)
-                continue;
+            foreach (Modifier modifier in provider.Modifiers)
+            {
+                if (modifier is not StatModifier statModifier)
+                    continue;
 
-            if (statModifier.Operation != ModifierOperation.Multiply)
-                continue;
+                if (statModifier.Stat != stat)
+                    continue;
 
-            result *= statModifier.Value;
+                if (statModifier.Operation != ModifierOperation.Multiply)
+                    continue;
+
+                result *= statModifier.Value;
+            }
         }
 
         return result;

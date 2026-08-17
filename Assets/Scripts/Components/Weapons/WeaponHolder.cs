@@ -1,8 +1,13 @@
 using System;
 using UnityEngine;
 
+[RequireComponent(typeof(ModifierController))]
+
 public class WeaponHolder : MonoBehaviour
 {
+    private ModifierController _modifierController;
+    public IModifierProvider ModifierProvider => _modifierController;
+    
     public event Action<Weapon> WeaponChanged;
     
     [SerializeField] private Transform _weaponSocket;
@@ -13,6 +18,8 @@ public class WeaponHolder : MonoBehaviour
     private void Awake()
     {
         if (_weaponSocket == null) throw new MissingReferenceException($"{name} is missing a socket.");
+        
+        _modifierController = GetComponent<ModifierController>();
     }
     
     public void Reload()

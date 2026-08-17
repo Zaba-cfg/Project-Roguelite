@@ -22,9 +22,9 @@ public class Weapon : MonoBehaviour
     public WeaponHolder CurrentHolder => _currentHolder;
     public bool IsEquipped => _currentHolder != null;
     public WeaponData WeaponData => _weaponData;
-    public float Damage => _modifierController.CalculateValue(WeaponData.Damage, ModifierStat.Damage);
-    public float FireRate => _modifierController.CalculateValue(WeaponData.FireRate, ModifierStat.FireRate);
-    public float ReloadDuration => _modifierController.CalculateValue(WeaponData.ReloadDuration, ModifierStat.ReloadDuration);
+    public float Damage => CalculateModifiedValue(WeaponData.Damage, ModifierStat.Damage);
+    public float FireRate => CalculateModifiedValue(WeaponData.FireRate, ModifierStat.FireRate);
+    public float ReloadDuration => CalculateModifiedValue(WeaponData.ReloadDuration, ModifierStat.ReloadDuration);
     public Transform Muzzle => _muzzle;
     public GameObject Owner => CurrentHolder.gameObject;
     
@@ -117,6 +117,20 @@ public class Weapon : MonoBehaviour
         
         AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
         ReloadCompleted?.Invoke();
+    }
+    
+    private float CalculateModifiedValue(float baseValue, ModifierStat stat)
+    {
+        if (!IsEquipped)
+        {
+            return _modifierController.CalculateValue(baseValue, stat);
+        }
+
+        return ModifierCalculator.Calculate(
+            baseValue,
+            stat,
+            _modifierController,
+            CurrentHolder.ModifierProvider);
     }
     
     public void OnEquipped(WeaponHolder holder)
