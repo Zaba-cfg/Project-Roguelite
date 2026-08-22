@@ -1,68 +1,72 @@
+using Components.Weapons;
 using UnityEngine;
 
-[RequireComponent(typeof(WeaponDetection))]
-[RequireComponent(typeof(WeaponHolder))]
-
-public class EnemyWeaponDecision : MonoBehaviour
+namespace Components.EnemyWeaponDecision
 {
-    [SerializeField] private float _pickupRange = 0.75f;
+    [RequireComponent(typeof(WeaponDetection.WeaponDetection))]
+    [RequireComponent(typeof(WeaponHolder))]
+
+    public class EnemyWeaponDecision : MonoBehaviour
+    {
+        [SerializeField] private float _pickupRange = 0.75f;
     
-    private WeaponDetection _weaponDetection;
-    private WeaponHolder _weaponHolder;
+        private WeaponDetection.WeaponDetection _weaponDetection;
+        private WeaponHolder _weaponHolder;
 
-    private void Awake()
-    {
-        _weaponDetection = GetComponent<WeaponDetection>();
-        _weaponHolder = GetComponent<WeaponHolder>();
-    }
-
-    public bool TryEquipNearbyWeapon()
-    {
-        if (_weaponHolder.HasWeapon)
-            return false;
-
-        Weapon weapon = GetClosestAvailableWeapon();
-
-        if (weapon == null)
-            return false;
-
-        _weaponHolder.Equip(weapon);
-        return true;
-    }
-
-    public Weapon GetClosestAvailableWeapon()
-    {
-        Weapon closestWeapon = null;
-        float closestDistance = float.MaxValue;
-
-        foreach (Weapon weapon in _weaponDetection.Weapons)
+        private void Awake()
         {
-            if (weapon.IsEquipped)
-                continue;
-
-            if (weapon.IsEmpty)
-                continue;
-
-            float distance = (weapon.transform.position - transform.position).sqrMagnitude;
-
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestWeapon = weapon;
-            }
+            _weaponDetection = GetComponent<WeaponDetection.WeaponDetection>();
+            _weaponHolder = GetComponent<WeaponHolder>();
         }
 
-        return closestWeapon;
-    }
+        public bool TryEquipNearbyWeapon()
+        {
+            if (_weaponHolder.HasWeapon)
+                return false;
 
-    public bool IsWeaponInPickupRange(Weapon weapon)
-    {
-        if (weapon == null)
-            return false;
+            Weapon weapon = GetClosestAvailableWeapon();
 
-        float distanceSquared =
-            (weapon.transform.position - transform.position).sqrMagnitude;
+            if (weapon == null)
+                return false;
 
-        return distanceSquared <= _pickupRange * _pickupRange;
+            _weaponHolder.Equip(weapon);
+            return true;
+        }
+
+        public Weapon GetClosestAvailableWeapon()
+        {
+            Weapon closestWeapon = null;
+            float closestDistance = float.MaxValue;
+
+            foreach (Weapon weapon in _weaponDetection.Weapons)
+            {
+                if (weapon.IsEquipped)
+                    continue;
+
+                if (weapon.IsEmpty)
+                    continue;
+
+                float distance = (weapon.transform.position - transform.position).sqrMagnitude;
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestWeapon = weapon;
+                }
+            }
+
+            return closestWeapon;
+        }
+
+        public bool IsWeaponInPickupRange(Weapon weapon)
+        {
+            if (weapon == null)
+                return false;
+
+            float distanceSquared =
+                (weapon.transform.position - transform.position).sqrMagnitude;
+
+            return distanceSquared <= _pickupRange * _pickupRange;
+        }
     }
 }

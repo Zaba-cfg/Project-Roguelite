@@ -1,5 +1,8 @@
-﻿public enum ModifierOperation
+﻿namespace Components.Modifiers
 {
-    Add,
-    Multiply
+    public enum ModifierOperation
+    {
+        Add,
+        Multiply
+    }
 }

@@ -1,23 +1,27 @@
+using Interfaces;
 using UnityEngine;
 
-public class EnemyAIInput : MonoBehaviour, IMoveInput
+namespace Components.EnemyAIInput
 {
-    public Vector2 MoveInput { get; private set; }
-    public Transform Target { get; private set; }
-
-    private void Awake()
+    public class EnemyAIInput : MonoBehaviour, IMoveInput
     {
-        //if (Target == null) throw new MissingReferenceException($"{name} is missing a target.");
-    }
+        public Vector2 MoveInput { get; private set; }
+        public Transform Target { get; private set; }
 
-    private void Update()
-    {
-        if (Target != null)
-            MoveInput = Target.position - transform.position;
-    }
+        private void Awake()
+        {
+            //if (Target == null) throw new MissingReferenceException($"{name} is missing a target.");
+        }
+
+        private void Update()
+        {
+            if (Target != null)
+                MoveInput = Target.position - transform.position;
+        }
     
-    public void SetTarget(Transform target)
-    {
-        Target = target;
+        public void SetTarget(Transform target)
+        {
+            Target = target;
+        }
     }
 }

@@ -1,5 +1,8 @@
 using UnityEngine;
 
-public abstract class ModifierDefinition: ScriptableObject
+namespace Components.Modifiers
 {
+    public abstract class ModifierDefinition: ScriptableObject
+    {
+    }
 }

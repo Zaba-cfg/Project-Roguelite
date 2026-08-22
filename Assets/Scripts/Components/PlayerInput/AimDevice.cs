@@ -1,5 +1,8 @@
-public enum AimDevice
+namespace Components.PlayerInput
 {
-    Mouse,
-    Gamepad
+    public enum AimDevice
+    {
+        Mouse,
+        Gamepad
+    }
 }

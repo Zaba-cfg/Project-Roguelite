@@ -1,6 +1,9 @@
 using UnityEngine;
 
-public abstract class WeaponFireStrategy : ScriptableObject
+namespace Components.Weapons
 {
-    public abstract void Execute(Weapon weapon, Vector2 direction);
+    public abstract class WeaponFireStrategy : ScriptableObject
+    {
+        public abstract void Execute(Weapon weapon, Vector2 direction);
+    }
 }

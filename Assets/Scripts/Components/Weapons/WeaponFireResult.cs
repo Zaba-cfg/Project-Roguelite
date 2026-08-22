@@ -1,8 +1,11 @@
-public enum WeaponFireResult
+namespace Components.Weapons
 {
-    Success,
-    NotEquipped,
-    Cooldown,
-    NoAmmo,
-    Reloading
+    public enum WeaponFireResult
+    {
+        Success,
+        NotEquipped,
+        Cooldown,
+        NoAmmo,
+        Reloading
+    }
 }

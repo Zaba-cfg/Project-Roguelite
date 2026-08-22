@@ -1,6 +1,9 @@
-public enum EnemyState
+namespace Components.EnemyBehavior
 {
-    Chasing,
-    SeekingWeapon,
-    Attacking
+    public enum EnemyState
+    {
+        Chasing,
+        SeekingWeapon,
+        Attacking
+    }
 }

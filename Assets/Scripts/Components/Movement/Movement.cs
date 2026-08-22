@@ -1,26 +1,37 @@
+using Components.Modifiers;
+using Interfaces;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-
-public class Movement : MonoBehaviour
+namespace Components.Movement
 {
-    private Rigidbody2D _rigidbody;
-    private IMoveInput _moveInput;
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(ModifierInventory))]
+
+    public class Movement : MonoBehaviour
+    {
+        private Rigidbody2D _rigidbody;
+        private IMoveInput _moveInput;
+        private ModifierInventory _modifierInventory;
     
-    [SerializeField] private float _speed = 5f;
+        [SerializeField] private float _baseSpeed = 5f;
 
-    private void Awake()
-    {
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _moveInput = GetComponent<IMoveInput>();
+        private void Awake()
+        {
+            _rigidbody = GetComponent<Rigidbody2D>();
+            _moveInput = GetComponent<IMoveInput>();
+            _modifierInventory = GetComponent<ModifierInventory>();
         
-        if (_moveInput == null)
-            throw new MissingComponentException($"{name} requires a component implementing IMoveInput.");
-    }
+            if (_moveInput == null)
+                throw new MissingComponentException($"{name} requires a component implementing IMoveInput.");
+        }
 
-    private void FixedUpdate()
-    {
-        var inputValue = Vector2.ClampMagnitude(_moveInput.MoveInput,1f);
-        _rigidbody.linearVelocity = inputValue * _speed;
+        private void FixedUpdate()
+        {
+            var inputValue = Vector2.ClampMagnitude(_moveInput.MoveInput,1f);
+        
+            float speed = _modifierInventory.CalculateValue(_baseSpeed, ModifierStat.MovementSpeed);
+    
+            _rigidbody.linearVelocity = inputValue * speed;
+        }
     }
 }

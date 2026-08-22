@@ -1,83 +1,92 @@
+using Components.Health;
+using Components.Interaction;
+using Components.LookDirection;
+using Components.Movement;
+using Components.PlayerInput;
+using Components.Weapons;
 using UnityEngine;
 
-[RequireComponent(typeof(Health))]
-[RequireComponent(typeof(PlayerInput))]
-[RequireComponent(typeof(Movement))]
-[RequireComponent(typeof(LookDirection))]
-[RequireComponent(typeof(WeaponHolder))]
-[RequireComponent(typeof(Interaction))]
-
-public class Player : MonoBehaviour
+namespace Entities.Player
 {
-    private PlayerInput _playerInput;
-    private LookDirection _lookDirection;
-    private WeaponHolder _weaponHolder;
-    private Interaction _interaction;
-    private Camera _mainCamera;
+    [RequireComponent(typeof(Health))]
+    [RequireComponent(typeof(PlayerInput))]
+    [RequireComponent(typeof(Movement))]
+    [RequireComponent(typeof(LookDirection))]
+    [RequireComponent(typeof(WeaponHolder))]
+    [RequireComponent(typeof(Interaction))]
 
-    private void Awake()
+    public class Player : MonoBehaviour
     {
-        _mainCamera = Camera.main;
-        _playerInput = GetComponent<PlayerInput>();
-        _lookDirection = GetComponent<LookDirection>();
-        _weaponHolder = GetComponent<WeaponHolder>();
-        _interaction = GetComponent<Interaction>();
-    }
-    
-    private void Update()
-    {
-        UpdateLookDirection();
-        UpdateFire();
-    }
-    
-    private void UpdateFire()
-    {
-        if (!_playerInput.FireHeld)
-            return;
+        private PlayerInput _playerInput;
+        private LookDirection _lookDirection;
+        private WeaponHolder _weaponHolder;
+        private Interaction _interaction;
+        private Camera _mainCamera;
 
-        _weaponHolder.TryFire(_lookDirection.Forward);
-    }
-
-    private void UpdateLookDirection()
-    {
-        if (_playerInput.CurrentAimDevice == AimDevice.Gamepad)
+        private void Awake()
         {
-            if (_playerInput.LookStick != Vector2.zero)
-            {
-                _lookDirection.SetDirection(_playerInput.LookStick);
-            }
+            _mainCamera = Camera.main;
+            _playerInput = GetComponent<PlayerInput>();
+            _lookDirection = GetComponent<LookDirection>();
+            _weaponHolder = GetComponent<WeaponHolder>();
+            _interaction = GetComponent<Interaction>();
+        }
+    
+        private void Update()
+        {
+            UpdateLookDirection();
+            UpdateFire();
+        }
+    
+        private void UpdateFire()
+        {
+            if (!_playerInput.FireHeld)
+                return;
 
-            return;
+            _weaponHolder.TryFire(_lookDirection.Forward);
         }
 
-        Vector3 mouseWorldPosition = _mainCamera.ScreenToWorldPoint(_playerInput.LookPointer);
+        private void UpdateLookDirection()
+        {
+            if (_playerInput.CurrentAimDevice == AimDevice.Gamepad)
+            {
+                if (_playerInput.LookStick != Vector2.zero)
+                {
+                    _lookDirection.SetDirection(_playerInput.LookStick);
+                }
 
-        Vector2 direction = (Vector2)mouseWorldPosition - (Vector2)transform.position;
+                return;
+            }
 
-        _lookDirection.SetDirection(direction);
-    }
-    
-    private void HandleFire()
-    {
-        _weaponHolder.TryFire(_lookDirection.Forward);
-    }
-    
-    private void HandleReload()
-    {
-        _weaponHolder.Reload();
-    }
-    
-    private void OnEnable()
-    {
-        _playerInput.ReloadPressed += HandleReload;
-        _playerInput.FirePressed += HandleFire;
-        _playerInput.InteractPressed += _interaction.Interact;
-    }
+            Vector3 mouseWorldPosition = _mainCamera.ScreenToWorldPoint(_playerInput.LookPointer);
 
-    private void OnDisable()
-    {
-        _playerInput.ReloadPressed -= HandleReload;
-        _playerInput.FirePressed -= HandleFire;
-        _playerInput.InteractPressed -= _interaction.Interact;
+            Vector2 direction = (Vector2)mouseWorldPosition - (Vector2)transform.position;
+
+            _lookDirection.SetDirection(direction);
+        }
+    
+        private void HandleFire()
+        {
+            _weaponHolder.TryFire(_lookDirection.Forward);
+        }
+    
+        private void HandleReload()
+        {
+            _weaponHolder.Reload();
+        }
+    
+        private void OnEnable()
+        {
+            _playerInput.ReloadPressed += HandleReload;
+            _playerInput.FirePressed += HandleFire;
+            _playerInput.InteractPressed += _interaction.Interact;
+        }
+
+        private void OnDisable()
+        {
+            _playerInput.ReloadPressed -= HandleReload;
+            _playerInput.FirePressed -= HandleFire;
+            _playerInput.InteractPressed -= _interaction.Interact;
+        }
     }
 }

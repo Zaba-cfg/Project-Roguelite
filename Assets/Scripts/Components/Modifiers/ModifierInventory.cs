@@ -1,84 +1,88 @@
 ﻿using System;
 using System.Collections.Generic;
+using Interfaces;
 using UnityEngine;
 
-public class ModifierInventory : MonoBehaviour, IModifierProvider
+namespace Components.Modifiers
 {
-    private readonly List<ModifierInstance> _modifiers = new();
-
-    public IReadOnlyList<ModifierInstance> Modifiers => _modifiers;
-
-    public event Action<ModifierInstance> ModifierAdded;
-    public event Action<ModifierInstance> ModifierRemoved;
-
-    private void Update()
+    public class ModifierInventory : MonoBehaviour, IModifierProvider
     {
-        List<ModifierInstance> expiredModifiers = new();
+        private readonly List<ModifierInstance> _modifiers = new();
 
-        foreach (ModifierInstance instance in _modifiers)
+        public IReadOnlyList<ModifierInstance> Modifiers => _modifiers;
+
+        public event Action<ModifierInstance> ModifierAdded;
+        public event Action<ModifierInstance> ModifierRemoved;
+
+        private void Update()
         {
-            if (!instance.IsTemporary)
-                continue;
+            List<ModifierInstance> expiredModifiers = new();
 
-            if (Time.time >= instance.ExpirationTime)
+            foreach (ModifierInstance instance in _modifiers)
             {
-                expiredModifiers.Add(instance);
+                if (!instance.IsTemporary)
+                    continue;
+
+                if (Time.time >= instance.ExpirationTime)
+                {
+                    expiredModifiers.Add(instance);
+                }
+            }
+
+            foreach (ModifierInstance instance in expiredModifiers)
+            {
+                RemoveModifier(instance);
             }
         }
 
-        foreach (ModifierInstance instance in expiredModifiers)
+        public bool AddModifier(ModifierDefinition definition)
         {
-            RemoveModifier(instance);
+            if (definition == null)
+                throw new ArgumentNullException(nameof(definition));
+
+            ModifierInstance instance = new ModifierInstance(definition);
+
+            _modifiers.Add(instance);
+
+            ModifierAdded?.Invoke(instance);
+
+            return true;
         }
-    }
 
-    public bool AddModifier(ModifierDefinition definition)
-    {
-        if (definition == null)
-            throw new ArgumentNullException(nameof(definition));
+        public bool AddTemporaryModifier(ModifierDefinition definition, float duration)
+        {
+            if (definition == null)
+                throw new ArgumentNullException(nameof(definition));
 
-        ModifierInstance instance = new ModifierInstance(definition);
+            if (duration <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(duration));
 
-        _modifiers.Add(instance);
+            ModifierInstance instance =
+                new ModifierInstance(definition, duration);
 
-        ModifierAdded?.Invoke(instance);
+            _modifiers.Add(instance);
 
-        return true;
-    }
+            ModifierAdded?.Invoke(instance);
 
-    public bool AddTemporaryModifier(ModifierDefinition definition, float duration)
-    {
-        if (definition == null)
-            throw new ArgumentNullException(nameof(definition));
+            return true;
+        }
 
-        if (duration <= 0f)
-            throw new ArgumentOutOfRangeException(nameof(duration));
+        public bool RemoveModifier(ModifierInstance instance)
+        {
+            if (instance == null)
+                return false;
 
-        ModifierInstance instance =
-            new ModifierInstance(definition, duration);
+            if (!_modifiers.Remove(instance))
+                return false;
 
-        _modifiers.Add(instance);
+            ModifierRemoved?.Invoke(instance);
 
-        ModifierAdded?.Invoke(instance);
+            return true;
+        }
 
-        return true;
-    }
-
-    public bool RemoveModifier(ModifierInstance instance)
-    {
-        if (instance == null)
-            return false;
-
-        if (!_modifiers.Remove(instance))
-            return false;
-
-        ModifierRemoved?.Invoke(instance);
-
-        return true;
-    }
-
-    public float CalculateValue(float baseValue, ModifierStat stat)
-    {
-        return ModifierCalculator.Calculate(baseValue, stat, this);
+        public float CalculateValue(float baseValue, ModifierStat stat)
+        {
+            return ModifierCalculator.Calculate(baseValue, stat, this);
+        }
     }
 }

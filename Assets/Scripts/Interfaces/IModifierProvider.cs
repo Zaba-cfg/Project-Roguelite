@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using Components.Modifiers;
 
-public interface IModifierProvider
+namespace Interfaces
 {
-    IReadOnlyList<ModifierInstance> Modifiers { get; }
+    public interface IModifierProvider
+    {
+        IReadOnlyList<ModifierInstance> Modifiers { get; }
+    }
 }

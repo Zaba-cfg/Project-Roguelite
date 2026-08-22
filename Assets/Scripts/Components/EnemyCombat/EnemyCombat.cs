@@ -1,31 +1,35 @@
+using Components.Weapons;
 using UnityEngine;
 
-[RequireComponent(typeof(WeaponHolder))]
-
-public class EnemyCombat : MonoBehaviour
+namespace Components.EnemyCombat
 {
-    [SerializeField] private Transform _target;
-    [SerializeField] private float _attackRange = 5f;
+    [RequireComponent(typeof(WeaponHolder))]
+
+    public class EnemyCombat : MonoBehaviour
+    {
+        [SerializeField] private Transform _target;
+        [SerializeField] private float _attackRange = 5f;
     
-    private WeaponHolder _weaponHolder;
+        private WeaponHolder _weaponHolder;
 
-    private void Awake()
-    {
-        if (_target == null) 
-            throw new MissingReferenceException($"{name} is missing a target.");
+        private void Awake()
+        {
+            if (_target == null) 
+                throw new MissingReferenceException($"{name} is missing a target.");
         
-        _weaponHolder = GetComponent<WeaponHolder>();
-    }
+            _weaponHolder = GetComponent<WeaponHolder>();
+        }
 
-    public bool CanAttack()
-    {
-        float distanceSquared = (_target.position - transform.position).sqrMagnitude;
+        public bool CanAttack()
+        {
+            float distanceSquared = (_target.position - transform.position).sqrMagnitude;
 
-        return distanceSquared <= _attackRange * _attackRange;
-    }
+            return distanceSquared <= _attackRange * _attackRange;
+        }
 
-    public void Attack(Vector2 direction)
-    {
-        _weaponHolder.TryFire(direction);
+        public void Attack(Vector2 direction)
+        {
+            _weaponHolder.TryFire(direction);
+        }
     }
 }

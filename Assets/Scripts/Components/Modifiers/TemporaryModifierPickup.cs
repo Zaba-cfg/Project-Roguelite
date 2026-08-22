@@ -1,19 +1,23 @@
+using Interfaces;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
-public class TemporaryModifierPickup : MonoBehaviour, IInteractable
+namespace Components.Modifiers
 {
-    [SerializeField] private ModifierDefinition _modifier;
-    [SerializeField] private float _duration = 10f;
-
-    public void Interact(GameObject interactor)
+    [RequireComponent(typeof(Collider2D))]
+    public class TemporaryModifierPickup : MonoBehaviour, IInteractable
     {
-        if (!interactor.TryGetComponent(out ModifierInventory modifierInventory))
-            return;
+        [SerializeField] private ModifierDefinition _modifier;
+        [SerializeField] private float _duration = 10f;
 
-        if (!modifierInventory.AddTemporaryModifier(_modifier, _duration))
-            return;
+        public void Interact(GameObject interactor)
+        {
+            if (!interactor.TryGetComponent(out ModifierInventory modifierInventory))
+                return;
 
-        Destroy(gameObject);
+            if (!modifierInventory.AddTemporaryModifier(_modifier, _duration))
+                return;
+
+            Destroy(gameObject);
+        }
     }
 }

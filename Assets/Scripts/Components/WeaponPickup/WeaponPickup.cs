@@ -1,22 +1,27 @@
+using Components.Weapons;
+using Interfaces;
 using UnityEngine;
 
-[RequireComponent(typeof(Weapon))]
-[RequireComponent(typeof(Interaction))]
-
-public class WeaponPickup : MonoBehaviour, IInteractable
+namespace Components.WeaponPickup
 {
-    private Weapon _weapon;
+    [RequireComponent(typeof(Weapon))]
+    [RequireComponent(typeof(Interaction.Interaction))]
 
-    private void Awake()
+    public class WeaponPickup : MonoBehaviour, IInteractable
     {
-        _weapon = GetComponent<Weapon>();
-    }
+        private Weapon _weapon;
 
-    public void Interact(GameObject interactor)
-    {
-        if (!interactor.TryGetComponent(out WeaponHolder weaponHolder))
-            return;
+        private void Awake()
+        {
+            _weapon = GetComponent<Weapon>();
+        }
 
-        weaponHolder.Equip(_weapon);
+        public void Interact(GameObject interactor)
+        {
+            if (!interactor.TryGetComponent(out WeaponHolder weaponHolder))
+                return;
+
+            weaponHolder.Equip(_weapon);
+        }
     }
 }

@@ -1,6 +1,9 @@
 using UnityEngine;
 
-public interface IMoveInput
+namespace Interfaces
 {
-    Vector2 MoveInput { get; }
+    public interface IMoveInput
+    {
+        Vector2 MoveInput { get; }
+    }
 }

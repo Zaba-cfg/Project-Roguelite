@@ -1,51 +1,55 @@
+using Components.Modifiers;
 using UnityEngine;
 
-[RequireComponent(typeof(ModifierInventory))]
-public class ModifierDebugger : MonoBehaviour
+namespace Debug
 {
-    private ModifierInventory _modifierInventory;
-
-    private void Awake()
+    [RequireComponent(typeof(ModifierInventory))]
+    public class ModifierDebugger : MonoBehaviour
     {
-        _modifierInventory = GetComponent<ModifierInventory>();
-    }
+        private ModifierInventory _modifierInventory;
 
-    private void OnEnable()
-    {
-        _modifierInventory.ModifierAdded += OnModifierAdded;
-        _modifierInventory.ModifierRemoved += OnModifierRemoved;
-    }
-
-    private void OnDisable()
-    {
-        _modifierInventory.ModifierAdded -= OnModifierAdded;
-        _modifierInventory.ModifierRemoved -= OnModifierRemoved;
-    }
-
-    private void OnModifierAdded(ModifierInstance instance)
-    {
-        Debug.Log($"Modifier Added: {GetModifierDescription(instance)}");
-    }
-
-    private void OnModifierRemoved(ModifierInstance instance)
-    {
-        Debug.Log($"Modifier Removed: {GetModifierDescription(instance)}");
-    }
-
-    private string GetModifierDescription(ModifierInstance instance)
-    {
-        if (instance == null)
-            return "Null";
-
-        if (instance.Definition is StatModifierDefinition modifier)
+        private void Awake()
         {
-            string duration = instance.IsTemporary
-                ? $"Temporary ({instance.ExpirationTime - Time.time:F1}s remaining)"
-                : "Permanent";
-
-            return $"{modifier.Stat} / {modifier.Operation} / {modifier.Value} / {duration}";
+            _modifierInventory = GetComponent<ModifierInventory>();
         }
 
-        return instance.Definition.name;
+        private void OnEnable()
+        {
+            _modifierInventory.ModifierAdded += OnModifierAdded;
+            _modifierInventory.ModifierRemoved += OnModifierRemoved;
+        }
+
+        private void OnDisable()
+        {
+            _modifierInventory.ModifierAdded -= OnModifierAdded;
+            _modifierInventory.ModifierRemoved -= OnModifierRemoved;
+        }
+
+        private void OnModifierAdded(ModifierInstance instance)
+        {
+            UnityEngine.Debug.Log($"Modifier Added: {GetModifierDescription(instance)}");
+        }
+
+        private void OnModifierRemoved(ModifierInstance instance)
+        {
+            UnityEngine.Debug.Log($"Modifier Removed: {GetModifierDescription(instance)}");
+        }
+
+        private string GetModifierDescription(ModifierInstance instance)
+        {
+            if (instance == null)
+                return "Null";
+
+            if (instance.Definition is StatModifierDefinition modifier)
+            {
+                string duration = instance.IsTemporary
+                    ? $"Temporary ({instance.ExpirationTime - Time.time:F1}s remaining)"
+                    : "Permanent";
+
+                return $"{modifier.Stat} / {modifier.Operation} / {modifier.Value} / {duration}";
+            }
+
+            return instance.Definition.name;
+        }
     }
 }

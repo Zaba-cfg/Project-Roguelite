@@ -1,17 +1,20 @@
 using UnityEngine;
 
-public class LookDirection : MonoBehaviour
+namespace Components.LookDirection
 {
-    public Vector2 Forward { get; private set; } = Vector2.right;
-
-    public void SetDirection(Vector2 direction)
+    public class LookDirection : MonoBehaviour
     {
-        if (direction == Vector2.zero) return;
-        
-        Forward = direction.normalized;
+        public Vector2 Forward { get; private set; } = Vector2.right;
 
-        float angle = Mathf.Atan2(Forward.y, Forward.x) * Mathf.Rad2Deg;
+        public void SetDirection(Vector2 direction)
+        {
+            if (direction == Vector2.zero) return;
         
-        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            Forward = direction.normalized;
+
+            float angle = Mathf.Atan2(Forward.y, Forward.x) * Mathf.Rad2Deg;
+        
+            transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        }
     }
 }

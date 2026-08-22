@@ -1,116 +1,120 @@
 using System;
+using Interfaces;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInput : MonoBehaviour, IMoveInput
+namespace Components.PlayerInput
 {
-    public Vector2 MoveInput { get; private set; }
-    public Vector2 LookPointer { get; private set; }
-    public Vector2 LookStick { get; private set; }
-    public bool FireHeld { get; private set; }
-    public AimDevice CurrentAimDevice { get; private set; } = AimDevice.Mouse;
+    public class PlayerInput : MonoBehaviour, IMoveInput
+    {
+        public Vector2 MoveInput { get; private set; }
+        public Vector2 LookPointer { get; private set; }
+        public Vector2 LookStick { get; private set; }
+        public bool FireHeld { get; private set; }
+        public AimDevice CurrentAimDevice { get; private set; } = AimDevice.Mouse;
     
-    public event Action FirePressed;
-    public event Action InteractPressed;
-    public event Action ReloadPressed;
+        public event Action FirePressed;
+        public event Action InteractPressed;
+        public event Action ReloadPressed;
     
-    private PlayerInputActions _playerInputActions;
-    private Vector2 _lastPointerPosition;
+        private PlayerInputActions _playerInputActions;
+        private Vector2 _lastPointerPosition;
 
-    private void Awake()
-    {
-        _playerInputActions = new PlayerInputActions();
-    }
-    
-    private void OnReloadPerformed(InputAction.CallbackContext context)
-    {
-        ReloadPressed?.Invoke();
-    }
-    
-    private void OnInteractPerformed(InputAction.CallbackContext obj)
-    {
-        InteractPressed?.Invoke();
-    }
-    
-    private void OnFirePerformed(InputAction.CallbackContext obj)
-    {
-        FireHeld = true;
-        FirePressed?.Invoke();
-    }
-    
-    private void OnFireCanceled(InputAction.CallbackContext context)
-    {
-        FireHeld = false;
-    }
-    
-    private void OnMovePerformed(InputAction.CallbackContext obj)
-    {
-        MoveInput = obj.ReadValue<Vector2>();
-    }
-    
-    private void OnMoveCanceled(InputAction.CallbackContext obj)
-    {
-        MoveInput = Vector2.zero;
-    }
-
-    private void OnLookPointerPerformed(InputAction.CallbackContext obj)
-    {
-        Vector2 newPosition = obj.ReadValue<Vector2>();
-
-        if (newPosition != _lastPointerPosition)
+        private void Awake()
         {
-            CurrentAimDevice = AimDevice.Mouse;
-            _lastPointerPosition = newPosition;
+            _playerInputActions = new PlayerInputActions();
+        }
+    
+        private void OnReloadPerformed(InputAction.CallbackContext context)
+        {
+            ReloadPressed?.Invoke();
+        }
+    
+        private void OnInteractPerformed(InputAction.CallbackContext obj)
+        {
+            InteractPressed?.Invoke();
+        }
+    
+        private void OnFirePerformed(InputAction.CallbackContext obj)
+        {
+            FireHeld = true;
+            FirePressed?.Invoke();
+        }
+    
+        private void OnFireCanceled(InputAction.CallbackContext context)
+        {
+            FireHeld = false;
+        }
+    
+        private void OnMovePerformed(InputAction.CallbackContext obj)
+        {
+            MoveInput = obj.ReadValue<Vector2>();
+        }
+    
+        private void OnMoveCanceled(InputAction.CallbackContext obj)
+        {
+            MoveInput = Vector2.zero;
         }
 
-        LookPointer = newPosition;
-    }
-    
-    private void OnLookStickPerformed(InputAction.CallbackContext obj)
-    {
-        LookStick = obj.ReadValue<Vector2>();
-
-        if (LookStick != Vector2.zero)
+        private void OnLookPointerPerformed(InputAction.CallbackContext obj)
         {
-            CurrentAimDevice = AimDevice.Gamepad;
+            Vector2 newPosition = obj.ReadValue<Vector2>();
+
+            if (newPosition != _lastPointerPosition)
+            {
+                CurrentAimDevice = AimDevice.Mouse;
+                _lastPointerPosition = newPosition;
+            }
+
+            LookPointer = newPosition;
         }
-    }
     
-    private void OnLookStickCanceled(InputAction.CallbackContext obj)
-    {
-        LookStick = Vector2.zero;
-    }
+        private void OnLookStickPerformed(InputAction.CallbackContext obj)
+        {
+            LookStick = obj.ReadValue<Vector2>();
 
-    private void OnEnable()
-    {
-        _playerInputActions.Enable();
-        _playerInputActions.Player.Reload.performed += OnReloadPerformed;
-        _playerInputActions.Player.Interact.performed += OnInteractPerformed;
-        _playerInputActions.Player.Fire.performed += OnFirePerformed;
-        _playerInputActions.Player.Fire.canceled += OnFireCanceled;
-        _playerInputActions.Player.Move.performed += OnMovePerformed;
-        _playerInputActions.Player.Move.canceled += OnMoveCanceled;
-        _playerInputActions.Player.LookPointer.performed += OnLookPointerPerformed;
-        _playerInputActions.Player.LookStick.performed += OnLookStickPerformed;
-        _playerInputActions.Player.LookStick.canceled += OnLookStickCanceled;
-    }
-
-    private void OnDisable()
-    {
-        _playerInputActions.Player.Reload.performed -= OnReloadPerformed;
-        _playerInputActions.Player.Interact.performed -= OnInteractPerformed;
-        _playerInputActions.Player.Fire.performed -= OnFirePerformed;
-        _playerInputActions.Player.Fire.canceled -= OnFireCanceled;
-        _playerInputActions.Player.Move.performed -= OnMovePerformed;
-        _playerInputActions.Player.Move.canceled -= OnMoveCanceled;
-        _playerInputActions.Player.LookPointer.performed -= OnLookPointerPerformed;
-        _playerInputActions.Player.LookStick.performed -= OnLookStickPerformed;
-        _playerInputActions.Player.LookStick.canceled -= OnLookStickCanceled;
-        _playerInputActions.Disable();
-    }
+            if (LookStick != Vector2.zero)
+            {
+                CurrentAimDevice = AimDevice.Gamepad;
+            }
+        }
     
-    private void OnDestroy()
-    {
-        _playerInputActions.Dispose();
+        private void OnLookStickCanceled(InputAction.CallbackContext obj)
+        {
+            LookStick = Vector2.zero;
+        }
+
+        private void OnEnable()
+        {
+            _playerInputActions.Enable();
+            _playerInputActions.Player.Reload.performed += OnReloadPerformed;
+            _playerInputActions.Player.Interact.performed += OnInteractPerformed;
+            _playerInputActions.Player.Fire.performed += OnFirePerformed;
+            _playerInputActions.Player.Fire.canceled += OnFireCanceled;
+            _playerInputActions.Player.Move.performed += OnMovePerformed;
+            _playerInputActions.Player.Move.canceled += OnMoveCanceled;
+            _playerInputActions.Player.LookPointer.performed += OnLookPointerPerformed;
+            _playerInputActions.Player.LookStick.performed += OnLookStickPerformed;
+            _playerInputActions.Player.LookStick.canceled += OnLookStickCanceled;
+        }
+
+        private void OnDisable()
+        {
+            _playerInputActions.Player.Reload.performed -= OnReloadPerformed;
+            _playerInputActions.Player.Interact.performed -= OnInteractPerformed;
+            _playerInputActions.Player.Fire.performed -= OnFirePerformed;
+            _playerInputActions.Player.Fire.canceled -= OnFireCanceled;
+            _playerInputActions.Player.Move.performed -= OnMovePerformed;
+            _playerInputActions.Player.Move.canceled -= OnMoveCanceled;
+            _playerInputActions.Player.LookPointer.performed -= OnLookPointerPerformed;
+            _playerInputActions.Player.LookStick.performed -= OnLookStickPerformed;
+            _playerInputActions.Player.LookStick.canceled -= OnLookStickCanceled;
+            _playerInputActions.Disable();
+        }
+    
+        private void OnDestroy()
+        {
+            _playerInputActions.Dispose();
+        }
     }
 }

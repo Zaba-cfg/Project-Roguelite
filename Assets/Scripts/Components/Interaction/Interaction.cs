@@ -1,60 +1,64 @@
 using System.Collections.Generic;
+using Interfaces;
 using UnityEngine;
 
-[RequireComponent(typeof(CircleCollider2D))]
-
-public class Interaction : MonoBehaviour
+namespace Components.Interaction
 {
-    [SerializeField] private float _interactionRadius = 1.5f;
-    
-    private readonly List<IInteractable> _interactables = new();
-    
-    private CircleCollider2D _circleCollider;
+    [RequireComponent(typeof(CircleCollider2D))]
 
-    private void Awake()
+    public class Interaction : MonoBehaviour
     {
-        _circleCollider = GetComponent<CircleCollider2D>();
-        _circleCollider.isTrigger = true;
-        _circleCollider.radius = _interactionRadius;
-    }
+        [SerializeField] private float _interactionRadius = 1.5f;
+    
+        private readonly List<IInteractable> _interactables = new();
+    
+        private CircleCollider2D _circleCollider;
 
-    public void Interact()
-    {
-        if (_interactables.Count <= 0) 
-            return;
-        
-        IInteractable closest = null;
-        float closestDistance = float.MaxValue;
-        
-        foreach (IInteractable interactable in _interactables)
+        private void Awake()
         {
-            Component component = interactable as Component;
-            float distance = (component.transform.position - transform.position).sqrMagnitude;
+            _circleCollider = GetComponent<CircleCollider2D>();
+            _circleCollider.isTrigger = true;
+            _circleCollider.radius = _interactionRadius;
+        }
 
-            if (distance < closestDistance)
+        public void Interact()
+        {
+            if (_interactables.Count <= 0) 
+                return;
+        
+            IInteractable closest = null;
+            float closestDistance = float.MaxValue;
+        
+            foreach (IInteractable interactable in _interactables)
             {
-                closestDistance = distance;
-                closest = interactable;
+                Component component = interactable as Component;
+                float distance = (component.transform.position - transform.position).sqrMagnitude;
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closest = interactable;
+                }
+            }
+            closest?.Interact(gameObject);
+        }
+
+        private void OnTriggerEnter2D(Collider2D collision)
+        {
+            if (collision.TryGetComponent(out IInteractable interactable)
+                && !_interactables.Contains(interactable))
+            {
+                _interactables.Add(interactable);
             }
         }
-        closest?.Interact(gameObject);
-    }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.TryGetComponent(out IInteractable interactable)
-            && !_interactables.Contains(interactable))
+        private void OnTriggerExit2D(Collider2D collision)
         {
-            _interactables.Add(interactable);
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.TryGetComponent(out IInteractable interactable)
-            && _interactables.Contains(interactable))
-        {
-            _interactables.Remove(interactable);
+            if (collision.TryGetComponent(out IInteractable interactable)
+                && _interactables.Contains(interactable))
+            {
+                _interactables.Remove(interactable);
+            }
         }
     }
 }

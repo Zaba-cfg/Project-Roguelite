@@ -1126,7 +1126,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &711420571
 Transform:
   m_ObjectHideFlags: 0
@@ -1666,7 +1666,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3f57298b87ce4e4fb60f1ecdcf7c0db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TemporaryModifierPickup
-  _modifier: {fileID: 11400000, guid: 33533a6132d0da64990db383757671d9, type: 2}
+  _modifier: {fileID: 11400000, guid: 00f02702983eb904d883a1ae962f61ab, type: 2}
   _duration: 10
 --- !u!58 &854384656
 CircleCollider2D:

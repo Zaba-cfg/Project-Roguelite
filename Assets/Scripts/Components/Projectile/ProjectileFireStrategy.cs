@@ -1,18 +1,22 @@
 using System;
+using Components.Weapons;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Projectile Fire Strategy", menuName = "Projectiles/Projectile Fire Strategy")]
-
-public class ProjectileFireStrategy : WeaponFireStrategy
+namespace Components.Projectile
 {
-    [SerializeField] private Projectile _projectile;
+    [CreateAssetMenu(fileName = "Projectile Fire Strategy", menuName = "Projectiles/Projectile Fire Strategy")]
 
-    public override void Execute(Weapon weapon, Vector2 direction)
+    public class ProjectileFireStrategy : WeaponFireStrategy
     {
-        if (_projectile == null) throw new InvalidOperationException($"{name} is missing a projectile");
+        [SerializeField] private Projectile _projectile;
+
+        public override void Execute(Weapon weapon, Vector2 direction)
+        {
+            if (_projectile == null) throw new InvalidOperationException($"{name} is missing a projectile");
         
-        Projectile newProjectile = Instantiate(_projectile, weapon.Muzzle.position, Quaternion.identity);
+            Projectile newProjectile = Instantiate(_projectile, weapon.Muzzle.position, Quaternion.identity);
         
-        newProjectile.Initialize(direction, weapon.Damage, weapon.Owner);
+            newProjectile.Initialize(direction, weapon.Damage, weapon.Owner);
+        }
     }
 }

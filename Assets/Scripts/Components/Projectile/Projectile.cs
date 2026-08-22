@@ -1,52 +1,55 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Collider2D))]
-
-public class Projectile : MonoBehaviour
+namespace Components.Projectile
 {
-    [SerializeField] private float _speed = 20f;
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(Collider2D))]
 
-    private Rigidbody2D _rigidbody;
-    private Collider2D _collider;
-
-    private float _damage;
-    private GameObject _owner;
-
-    private void Awake()
+    public class Projectile : MonoBehaviour
     {
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _collider = GetComponent<Collider2D>();
-    }
+        [SerializeField] private float _speed = 20f;
 
-    public void Initialize(Vector2 direction, float damage, GameObject owner)
-    {
-        if (direction == Vector2.zero)
-            throw new ArgumentException($"{name} cannot have a zero direction.");
+        private Rigidbody2D _rigidbody;
+        private Collider2D _collider;
 
-        if (owner == null)
-            throw new ArgumentNullException(nameof(owner));
+        private float _damage;
+        private GameObject _owner;
 
-        _damage = damage;
-        _owner = owner;
+        private void Awake()
+        {
+            _rigidbody = GetComponent<Rigidbody2D>();
+            _collider = GetComponent<Collider2D>();
+        }
 
-        _rigidbody.linearVelocity = direction.normalized * _speed;
+        public void Initialize(Vector2 direction, float damage, GameObject owner)
+        {
+            if (direction == Vector2.zero)
+                throw new ArgumentException($"{name} cannot have a zero direction.");
 
-        Destroy(gameObject, 5f);
-    }
+            if (owner == null)
+                throw new ArgumentNullException(nameof(owner));
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.gameObject == _owner || other.transform.IsChildOf(_owner.transform))
-            return;
+            _damage = damage;
+            _owner = owner;
 
-        if (other.isTrigger)
-            return;
+            _rigidbody.linearVelocity = direction.normalized * _speed;
 
-        if (other.TryGetComponent(out Health health))
-            health.TakeDamage(_damage);
+            Destroy(gameObject, 5f);
+        }
 
-        Destroy(gameObject);
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (other.gameObject == _owner || other.transform.IsChildOf(_owner.transform))
+                return;
+
+            if (other.isTrigger)
+                return;
+
+            if (other.TryGetComponent(out Health.Health health))
+                health.TakeDamage(_damage);
+
+            Destroy(gameObject);
+        }
     }
 }

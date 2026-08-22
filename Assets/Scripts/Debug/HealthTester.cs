@@ -1,28 +1,33 @@
+using Components.Health;
 using UnityEngine;
-[RequireComponent(typeof(Health))]
 
-public class HealthTester : MonoBehaviour
+namespace Debug
 {
-    private Health _health;
+    [RequireComponent(typeof(Health))]
 
-    private void Awake()
+    public class HealthTester : MonoBehaviour
     {
-        _health = GetComponent<Health>();
-    }
+        private Health _health;
 
-    [ContextMenu("Take Damage")]
-    public void TestDamage()
-    {
-        _health.TakeDamage(20);
-    }
-    [ContextMenu("Heal")]
-    public void TestHeal()
-    {
-        _health.Heal(20);
-    }
-    [ContextMenu("Restore health")]
-    public void TestRestoreHealth()
-    {
-        _health.RestoreFullHealth();
+        private void Awake()
+        {
+            _health = GetComponent<Health>();
+        }
+
+        [ContextMenu("Take Damage")]
+        public void TestDamage()
+        {
+            _health.TakeDamage(20);
+        }
+        [ContextMenu("Heal")]
+        public void TestHeal()
+        {
+            _health.Heal(20);
+        }
+        [ContextMenu("Restore health")]
+        public void TestRestoreHealth()
+        {
+            _health.RestoreFullHealth();
+        }
     }
 }

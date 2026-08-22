@@ -1,7 +1,10 @@
-﻿public enum ModifierStat
+﻿namespace Components.Modifiers
 {
-    Damage,
-    FireRate,
-    ReloadDuration,
-    MovementSpeed
+    public enum ModifierStat
+    {
+        Damage,
+        FireRate,
+        ReloadDuration,
+        MovementSpeed
+    }
 }

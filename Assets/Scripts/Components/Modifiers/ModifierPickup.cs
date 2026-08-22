@@ -1,18 +1,22 @@
+using Interfaces;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
-public class ModifierPickup : MonoBehaviour, IInteractable
+namespace Components.Modifiers
 {
-    [SerializeField] private ModifierDefinition _modifier;
-
-    public void Interact(GameObject interactor)
+    [RequireComponent(typeof(Collider2D))]
+    public class ModifierPickup : MonoBehaviour, IInteractable
     {
-        if (!interactor.TryGetComponent(out ModifierInventory modifierInventory))
-            return;
+        [SerializeField] private ModifierDefinition _modifier;
 
-        if (!modifierInventory.AddModifier(_modifier))
-            return;
+        public void Interact(GameObject interactor)
+        {
+            if (!interactor.TryGetComponent(out ModifierInventory modifierInventory))
+                return;
 
-        Destroy(gameObject);
+            if (!modifierInventory.AddModifier(_modifier))
+                return;
+
+            Destroy(gameObject);
+        }
     }
 }
