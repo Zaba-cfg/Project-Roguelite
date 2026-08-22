@@ -1,3 +1,4 @@
+using Components.Directions;
 using Components.Weapons;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ namespace Components.EnemyBehavior
     [RequireComponent(typeof(EnemyAIInput.EnemyAIInput))]
     [RequireComponent(typeof(EnemyCombat.EnemyCombat))]
     [RequireComponent(typeof(EnemyWeaponDecision.EnemyWeaponDecision))]
-    [RequireComponent(typeof(LookDirection.LookDirection))]
+    [RequireComponent(typeof(LookDirection))]
     [RequireComponent(typeof(WeaponHolder))]
 
     public class EnemyBehavior : MonoBehaviour
@@ -16,7 +17,7 @@ namespace Components.EnemyBehavior
         private EnemyAIInput.EnemyAIInput _aiInput;
         private EnemyCombat.EnemyCombat _combat;
         private EnemyWeaponDecision.EnemyWeaponDecision _weaponDecision;
-        private LookDirection.LookDirection _lookDirection;
+        private LookDirection _lookDirection;
         private WeaponHolder _weaponHolder;
     
         [SerializeField] private Transform _target;
@@ -29,7 +30,7 @@ namespace Components.EnemyBehavior
             _aiInput = GetComponent<EnemyAIInput.EnemyAIInput>();
             _combat = GetComponent<EnemyCombat.EnemyCombat>();
             _weaponDecision = GetComponent<EnemyWeaponDecision.EnemyWeaponDecision>();
-            _lookDirection = GetComponent<LookDirection.LookDirection>();
+            _lookDirection = GetComponent<LookDirection>();
             _weaponHolder = GetComponent<WeaponHolder>();
 
             CurrentState = EnemyState.Chasing;

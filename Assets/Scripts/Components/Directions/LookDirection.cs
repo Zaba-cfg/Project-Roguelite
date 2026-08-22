@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Components.LookDirection
+namespace Components.Directions
 {
     public class LookDirection : MonoBehaviour
     {

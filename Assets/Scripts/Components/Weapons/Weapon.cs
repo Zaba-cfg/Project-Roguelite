@@ -1,4 +1,5 @@
 using System;
+using Components.Directions;
 using Components.Modifiers;
 using UnityEngine;
 
@@ -21,7 +22,7 @@ namespace Components.Weapons
         private float _nextFireTime;
         private float _reloadEndTime;
     
-        public bool IsEmpty => CurrentAmmo <= 0 && ReserveAmmo <= 0;
+        public bool IsEmpty => WeaponData.AmmoType == WeaponAmmoType.Magazine && CurrentAmmo <= 0 && ReserveAmmo <= 0;
         public WeaponHolder CurrentHolder => _currentHolder;
         public bool IsEquipped => _currentHolder != null;
         public WeaponData WeaponData => _weaponData;
@@ -70,14 +71,17 @@ namespace Components.Weapons
             if (Time.time < _nextFireTime) 
                 return WeaponFireResult.Cooldown;
 
-            if (CurrentAmmo <= 0) 
+            if (WeaponData.AmmoType == WeaponAmmoType.Magazine &&  CurrentAmmo <= 0) 
                 return WeaponFireResult.NoAmmo;
-        
-            int previousAmmo = CurrentAmmo;
-        
-            CurrentAmmo--;
-        
-            AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
+
+            if (WeaponData.AmmoType == WeaponAmmoType.Magazine)
+            {
+                int previousAmmo = CurrentAmmo;
+            
+                CurrentAmmo--;
+            
+                AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
+            }
 
             _nextFireTime = Time.time + (1f / FireRate);
             
@@ -101,6 +105,8 @@ namespace Components.Weapons
             if (CurrentAmmo == WeaponData.MagazineSize)
                 return;
             if (ReserveAmmo <= 0)
+                return;
+            if (WeaponData.AmmoType == WeaponAmmoType.Infinite)
                 return;
         
             IsReloading = true;
@@ -167,6 +173,27 @@ namespace Components.Weapons
         {
             _currentHolder = null;
             IsReloading = false;
+        }
+        
+        private void OnDrawGizmosSelected()
+        {
+            if (_muzzle == null || WeaponData == null)
+                return;
+
+            if (WeaponData.WeaponFireStrategy is not MeleeFireStrategy meleeStrategy)
+                return;
+
+            Vector2 direction = Application.isPlaying
+                ? GetComponentInParent<LookDirection>()?.Forward ?? Vector2.right
+                : transform.right;
+
+            Vector2 hitPosition =
+                (Vector2)_muzzle.position +
+                direction.normalized * meleeStrategy.Range;
+
+            Gizmos.DrawWireSphere(
+                hitPosition,
+                meleeStrategy.Radius);
         }
     }
 }

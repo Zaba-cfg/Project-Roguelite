@@ -13,6 +13,7 @@ namespace Components.Weapons
         [SerializeField] private WeaponFireStrategy _weaponFireStrategy;
         [SerializeField, Min(0f)] private float _reloadDuration;
         [SerializeField, Min(0f)] private int _maxReserveAmmo;
+        [SerializeField] private WeaponAmmoType _ammoType;
     
         public string WeaponName => _weaponName;
         public Sprite Icon => _icon;
@@ -22,5 +23,6 @@ namespace Components.Weapons
         public WeaponFireStrategy WeaponFireStrategy => _weaponFireStrategy;
         public float ReloadDuration => _reloadDuration;
         public int MaxReserveAmmo => _maxReserveAmmo;
+        public WeaponAmmoType AmmoType => _ammoType;
     }
 }

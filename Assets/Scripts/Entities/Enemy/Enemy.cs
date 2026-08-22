@@ -1,9 +1,9 @@
+using Components.Directions;
 using Components.EnemyAIInput;
 using Components.EnemyBehavior;
 using Components.EnemyCombat;
 using Components.EnemyWeaponDecision;
-using Components.Health;
-using Components.LookDirection;
+using Components.HealthComponents;
 using Components.Movement;
 using Components.WeaponDetection;
 using Components.Weapons;

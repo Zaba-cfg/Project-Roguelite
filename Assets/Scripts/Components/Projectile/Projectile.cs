@@ -1,4 +1,5 @@
 using System;
+using Components.HealthComponents;
 using UnityEngine;
 
 namespace Components.Projectile
@@ -46,7 +47,7 @@ namespace Components.Projectile
             if (other.isTrigger)
                 return;
 
-            if (other.TryGetComponent(out Health.Health health))
+            if (other.TryGetComponent(out Health health))
                 health.TakeDamage(_damage);
 
             Destroy(gameObject);

@@ -13,7 +13,7 @@ namespace UI.WeaponAmmoUI
 
         private void UpdateAmmoText(int currentAmmo, int reserveAmmo)
         {
-            _ammoText.text = $"{currentAmmo}/{reserveAmmo}";
+            _ammoText.text = _weaponHolder.CurrentWeapon.WeaponData.AmmoType == WeaponAmmoType.Magazine ? $"{currentAmmo}/{reserveAmmo}" : "∞";
         }
     
         private void ClearAmmoText()

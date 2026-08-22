@@ -1,6 +1,6 @@
-using Components.Health;
+using Components.Directions;
+using Components.HealthComponents;
 using Components.Interaction;
-using Components.LookDirection;
 using Components.Movement;
 using Components.PlayerInput;
 using Components.Weapons;

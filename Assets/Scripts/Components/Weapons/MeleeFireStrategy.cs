@@ -1,0 +1,49 @@
+﻿using System;
+using System.Collections.Generic;
+using Components.HealthComponents;
+using UnityEngine;
+
+namespace Components.Weapons
+{
+    [CreateAssetMenu(fileName = "Melee Fire Strategy", menuName = "Weapons/Fire Strategies/Melee")]
+    public class MeleeFireStrategy : WeaponFireStrategy
+    {
+        [SerializeField, Min(0f)] private float _range = 1.25f;
+        [SerializeField, Min(0f)] private float _radius = 0.5f;
+        
+        public float Range => _range;
+        public float Radius => _radius;
+
+        public override void Execute(WeaponFireContext context)
+        {
+            if (context.Weapon == null)
+                throw new ArgumentNullException(nameof(context.Weapon));
+
+            if (context.Direction == Vector2.zero)
+                return;
+
+            Vector2 hitPosition = (Vector2)context.Weapon.Muzzle.position + context.Direction.normalized * _range;
+
+            Collider2D[] hits = Physics2D.OverlapCircleAll(hitPosition, _radius);
+
+            HashSet<Health> damagedTargets = new();
+
+            foreach (Collider2D hit in hits)
+            {
+                if (hit.isTrigger)
+                    continue;
+
+                if (hit.gameObject == context.Weapon.Owner || hit.transform.IsChildOf(context.Weapon.Owner.transform))
+                    continue;
+
+                if (!hit.TryGetComponent(out Health health))
+                    continue;
+
+                if (!damagedTargets.Add(health))
+                    continue;
+
+                health.TakeDamage(context.Weapon.Damage);
+            }
+        }
+    }
+}
