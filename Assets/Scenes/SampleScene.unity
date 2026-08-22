@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d883ded6bb916a41a166b85b0c7f4a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModifierPickup
-  _modifier: {fileID: 11400000, guid: 33533a6132d0da64990db383757671d9, type: 2}
+  _modifier: {fileID: 11400000, guid: 2baea3ee4aa4324468a986f49f472eba, type: 2}
 --- !u!58 &101067621
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1126,7 +1126,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &711420571
 Transform:
   m_ObjectHideFlags: 0
@@ -1337,7 +1337,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3040cf5e3940ed543bbc221acc73769b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Movement
-  _speed: 3
+  _baseSpeed: 5
 --- !u!114 &711420583
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1666,7 +1666,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3f57298b87ce4e4fb60f1ecdcf7c0db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TemporaryModifierPickup
-  _modifier: {fileID: 11400000, guid: 00f02702983eb904d883a1ae962f61ab, type: 2}
+  _modifier: {fileID: 11400000, guid: 2baea3ee4aa4324468a986f49f472eba, type: 2}
   _duration: 10
 --- !u!58 &854384656
 CircleCollider2D:
@@ -2187,7 +2187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d883ded6bb916a41a166b85b0c7f4a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModifierPickup
-  _modifier: {fileID: 11400000, guid: 33533a6132d0da64990db383757671d9, type: 2}
+  _modifier: {fileID: 11400000, guid: 2baea3ee4aa4324468a986f49f472eba, type: 2}
 --- !u!58 &1225781976
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -2408,7 +2408,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d883ded6bb916a41a166b85b0c7f4a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModifierPickup
-  _modifier: {fileID: 11400000, guid: 33533a6132d0da64990db383757671d9, type: 2}
+  _modifier: {fileID: 11400000, guid: 2baea3ee4aa4324468a986f49f472eba, type: 2}
 --- !u!58 &1470862300
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -2667,7 +2667,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d883ded6bb916a41a166b85b0c7f4a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModifierPickup
-  _modifier: {fileID: 11400000, guid: 33533a6132d0da64990db383757671d9, type: 2}
+  _modifier: {fileID: 11400000, guid: 2baea3ee4aa4324468a986f49f472eba, type: 2}
 --- !u!58 &1852219354
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -2895,7 +2895,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3040cf5e3940ed543bbc221acc73769b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  _speed: 5
+  _baseSpeed: 5
 --- !u!50 &2061168581
 Rigidbody2D:
   serializedVersion: 5

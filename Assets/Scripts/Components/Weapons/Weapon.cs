@@ -80,8 +80,12 @@ namespace Components.Weapons
             AmmoChanged?.Invoke(previousAmmo, CurrentAmmo);
 
             _nextFireTime = Time.time + (1f / FireRate);
+            
+            WeaponFireContext context = new (this, direction);
+            
+            ApplyModifiers(context);
         
-            _weaponData.WeaponFireStrategy.Execute(this, direction);
+            _weaponData.WeaponFireStrategy.Execute(context);
         
             WeaponFired?.Invoke();
 
@@ -130,6 +134,28 @@ namespace Components.Weapons
             }
 
             return ModifierCalculator.Calculate(baseValue, stat, _modifierInventory, CurrentHolder.ModifierProvider);
+        }
+
+        private void ApplyModifiers(WeaponFireContext context)
+        {
+            foreach (ModifierInstance instance in _modifierInventory.Modifiers)
+            {
+                if (instance.Definition is WeaponFireModifierDefinition modifier)
+                {
+                    modifier.Modify(context);
+                }
+            }
+            
+            if (!IsEquipped)
+                return;
+
+            foreach (ModifierInstance instance in CurrentHolder.ModifierProvider.Modifiers)
+            {
+                if (instance.Definition is WeaponFireModifierDefinition modifier)
+                {
+                    modifier.Modify(context);
+                }
+            }
         }
     
         public void OnEquipped(WeaponHolder holder)
