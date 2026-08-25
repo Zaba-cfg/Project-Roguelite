@@ -1,4 +1,4 @@
-namespace Components.EnemyBehavior
+namespace Components.Enemy.EnemyBehavior
 {
     public enum EnemyState
     {

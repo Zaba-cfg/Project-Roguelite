@@ -1,12 +1,12 @@
-using Components.Directions;
+using Components.Base;
 using Components.Weapons;
 using UnityEngine;
 
-namespace Components.EnemyBehavior
+namespace Components.Enemy.EnemyBehavior
 {
-    [RequireComponent(typeof(EnemyAIInput.EnemyAIInput))]
-    [RequireComponent(typeof(EnemyCombat.EnemyCombat))]
-    [RequireComponent(typeof(EnemyWeaponDecision.EnemyWeaponDecision))]
+    [RequireComponent(typeof(EnemyAIInput))]
+    [RequireComponent(typeof(EnemyCombat))]
+    [RequireComponent(typeof(EnemyWeaponDecision))]
     [RequireComponent(typeof(LookDirection))]
     [RequireComponent(typeof(WeaponHolder))]
 
@@ -14,9 +14,9 @@ namespace Components.EnemyBehavior
     {
         public EnemyState CurrentState { get; private set; }
     
-        private EnemyAIInput.EnemyAIInput _aiInput;
-        private EnemyCombat.EnemyCombat _combat;
-        private EnemyWeaponDecision.EnemyWeaponDecision _weaponDecision;
+        private EnemyAIInput _aiInput;
+        private EnemyCombat _combat;
+        private EnemyWeaponDecision _weaponDecision;
         private LookDirection _lookDirection;
         private WeaponHolder _weaponHolder;
     
@@ -27,9 +27,9 @@ namespace Components.EnemyBehavior
             if (_target == null)
                 throw new MissingReferenceException($"{name} is missing a target.");
         
-            _aiInput = GetComponent<EnemyAIInput.EnemyAIInput>();
-            _combat = GetComponent<EnemyCombat.EnemyCombat>();
-            _weaponDecision = GetComponent<EnemyWeaponDecision.EnemyWeaponDecision>();
+            _aiInput = GetComponent<EnemyAIInput>();
+            _combat = GetComponent<EnemyCombat>();
+            _weaponDecision = GetComponent<EnemyWeaponDecision>();
             _lookDirection = GetComponent<LookDirection>();
             _weaponHolder = GetComponent<WeaponHolder>();
 

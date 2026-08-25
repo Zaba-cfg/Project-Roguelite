@@ -1,11 +1,7 @@
-using Components.Directions;
-using Components.EnemyAIInput;
-using Components.EnemyBehavior;
-using Components.EnemyCombat;
-using Components.EnemyWeaponDecision;
-using Components.HealthComponents;
-using Components.Movement;
-using Components.WeaponDetection;
+using Components.Base;
+using Components.Base.Weapon;
+using Components.Enemy;
+using Components.Enemy.EnemyBehavior;
 using Components.Weapons;
 using UnityEngine;
 

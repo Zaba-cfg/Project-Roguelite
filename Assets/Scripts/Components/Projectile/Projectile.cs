@@ -1,5 +1,5 @@
 using System;
-using Components.HealthComponents;
+using Components.Base;
 using UnityEngine;
 
 namespace Components.Projectile

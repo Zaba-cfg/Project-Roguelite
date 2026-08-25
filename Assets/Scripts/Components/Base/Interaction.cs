@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Interfaces;
 using UnityEngine;
 
-namespace Components.Interaction
+namespace Components.Base
 {
     [RequireComponent(typeof(CircleCollider2D))]
 

@@ -1,5 +1,5 @@
 using System;
-using Components.Directions;
+using Components.Base;
 using Components.Modifiers;
 using UnityEngine;
 

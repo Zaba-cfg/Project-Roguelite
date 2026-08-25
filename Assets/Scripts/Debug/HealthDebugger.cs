@@ -1,4 +1,4 @@
-using Components.HealthComponents;
+using Components.Base;
 using UnityEngine;
 
 namespace Debug

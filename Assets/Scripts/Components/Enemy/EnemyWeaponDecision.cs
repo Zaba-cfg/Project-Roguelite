@@ -1,21 +1,22 @@
+using Components.Base.Weapon;
 using Components.Weapons;
 using UnityEngine;
 
-namespace Components.EnemyWeaponDecision
+namespace Components.Enemy
 {
-    [RequireComponent(typeof(WeaponDetection.WeaponDetection))]
+    [RequireComponent(typeof(WeaponDetection))]
     [RequireComponent(typeof(WeaponHolder))]
 
     public class EnemyWeaponDecision : MonoBehaviour
     {
         [SerializeField] private float _pickupRange = 0.75f;
     
-        private WeaponDetection.WeaponDetection _weaponDetection;
+        private WeaponDetection _weaponDetection;
         private WeaponHolder _weaponHolder;
 
         private void Awake()
         {
-            _weaponDetection = GetComponent<WeaponDetection.WeaponDetection>();
+            _weaponDetection = GetComponent<WeaponDetection>();
             _weaponHolder = GetComponent<WeaponHolder>();
         }
 

@@ -1,19 +1,18 @@
 using System.Collections.Generic;
-using Components.Weapons;
 using UnityEngine;
 
-namespace Components.WeaponDetection
+namespace Components.Base.Weapon
 {
     [RequireComponent(typeof(CircleCollider2D))]
     public class WeaponDetection : MonoBehaviour
     {
         [SerializeField] private float _detectionRadius = 5f;
 
-        private readonly List<Weapon> _weapons = new();
+        private readonly List<Weapons.Weapon> _weapons = new();
 
         private CircleCollider2D _circleCollider;
 
-        public IReadOnlyList<Weapon> Weapons => _weapons;
+        public IReadOnlyList<Weapons.Weapon> Weapons => _weapons;
 
         private void Awake()
         {
@@ -24,13 +23,13 @@ namespace Components.WeaponDetection
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (collision.TryGetComponent(out Weapon weapon) && !_weapons.Contains(weapon))
+            if (collision.TryGetComponent(out Weapons.Weapon weapon) && !_weapons.Contains(weapon))
                 _weapons.Add(weapon);
         }
 
         private void OnTriggerExit2D(Collider2D collision)
         {
-            if (collision.TryGetComponent(out Weapon weapon)&& _weapons.Contains(weapon))
+            if (collision.TryGetComponent(out Weapons.Weapon weapon)&& _weapons.Contains(weapon))
                 _weapons.Remove(weapon);
         }
     }

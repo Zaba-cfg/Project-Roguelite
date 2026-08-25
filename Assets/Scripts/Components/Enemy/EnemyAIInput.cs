@@ -1,7 +1,7 @@
 using Interfaces;
 using UnityEngine;
 
-namespace Components.EnemyAIInput
+namespace Components.Enemy
 {
     public class EnemyAIInput : MonoBehaviour, IMoveInput
     {

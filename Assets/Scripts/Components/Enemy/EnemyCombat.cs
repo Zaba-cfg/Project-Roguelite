@@ -1,7 +1,7 @@
 using Components.Weapons;
 using UnityEngine;
 
-namespace Components.EnemyCombat
+namespace Components.Enemy
 {
     [RequireComponent(typeof(WeaponHolder))]
 

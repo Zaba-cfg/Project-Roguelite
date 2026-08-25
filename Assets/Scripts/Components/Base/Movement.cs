@@ -2,7 +2,7 @@ using Components.Modifiers;
 using Interfaces;
 using UnityEngine;
 
-namespace Components.Movement
+namespace Components.Base
 {
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(ModifierInventory))]
