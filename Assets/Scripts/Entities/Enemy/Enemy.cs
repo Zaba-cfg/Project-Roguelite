@@ -1,4 +1,5 @@
 using Components.Base;
+using Components.Base.HealthRelated;
 using Components.Base.Weapon;
 using Components.Enemy;
 using Components.Enemy.EnemyBehavior;

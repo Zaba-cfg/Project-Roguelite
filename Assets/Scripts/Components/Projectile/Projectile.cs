@@ -1,5 +1,6 @@
 using System;
 using Components.Base;
+using Components.Base.HealthRelated;
 using UnityEngine;
 
 namespace Components.Projectile

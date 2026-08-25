@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Components.Base;
+using Components.Base.HealthRelated;
 using UnityEngine;
 
 namespace Components.Weapons
