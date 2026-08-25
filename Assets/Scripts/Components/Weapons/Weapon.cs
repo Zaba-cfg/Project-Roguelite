@@ -135,9 +135,7 @@ namespace Components.Weapons
         private float CalculateModifiedValue(float baseValue, ModifierStat stat)
         {
             if (!IsEquipped)
-            {
                 return _modifierInventory.CalculateValue(baseValue, stat);
-            }
 
             return ModifierCalculator.Calculate(baseValue, stat, _modifierInventory, CurrentHolder.ModifierProvider);
         }
@@ -183,17 +181,52 @@ namespace Components.Weapons
             if (WeaponData.WeaponFireStrategy is not MeleeFireStrategy meleeStrategy)
                 return;
 
+            LookDirection lookDirection =
+                GetComponentInParent<LookDirection>();
+
             Vector2 direction = Application.isPlaying
-                ? GetComponentInParent<LookDirection>()?.Forward ?? Vector2.right
+                ? lookDirection?.Forward ?? Vector2.right
                 : transform.right;
 
-            Vector2 hitPosition =
-                (Vector2)_muzzle.position +
-                direction.normalized * meleeStrategy.Range;
+            if (direction == Vector2.zero)
+                return;
 
-            Gizmos.DrawWireSphere(
-                hitPosition,
-                meleeStrategy.Radius);
+            int attackCount = 1;
+            float spreadAngle = 0f;
+
+            WeaponFireContext context = new(this, direction);
+
+            if (Application.isPlaying)
+            {
+                ApplyModifiers(context);
+
+                attackCount = context.AttackCount;
+                spreadAngle = context.SpreadAngle;
+            }
+
+            float angleStep = attackCount > 1
+                ? spreadAngle / (attackCount - 1)
+                : 0f;
+
+            float startAngle = -spreadAngle / 2f;
+
+            float hitRadius = Mathf.Max(
+                meleeStrategy.Radius / Mathf.Sqrt(attackCount),
+                meleeStrategy.Radius * meleeStrategy.MinimumRadiusMultiplier);
+
+            for (int i = 0; i < attackCount; i++)
+            {
+                float angle = startAngle + angleStep * i;
+
+                Vector2 attackDirection =
+                    Quaternion.Euler(0f, 0f, angle) * direction;
+
+                Vector2 hitPosition =
+                    (Vector2)_muzzle.position +
+                    attackDirection.normalized * meleeStrategy.Range;
+
+                Gizmos.DrawWireSphere(hitPosition, hitRadius);
+            }
         }
     }
 }

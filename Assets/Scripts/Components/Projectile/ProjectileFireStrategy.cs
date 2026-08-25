@@ -15,11 +15,11 @@ namespace Components.Projectile
             if (!_projectile)
                 throw new InvalidOperationException($"{name} is missing a projectile.");
             
-            float angleStep = context.ProjectileCount > 1 ? context.SpreadAngle / (context.ProjectileCount - 1) : 0f;
+            float angleStep = context.AttackCount > 1 ? context.SpreadAngle / (context.AttackCount - 1) : 0f;
             
             float startAngle = -context.SpreadAngle / 2f;
 
-            for (int i = 0; i < context.ProjectileCount; i++)
+            for (int i = 0; i < context.AttackCount; i++)
             {
                 float angle = startAngle + angleStep * i;
                 

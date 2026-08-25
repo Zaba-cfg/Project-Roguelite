@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: Melee
   m_EditorClassIdentifier: Assembly-CSharp::Components.Weapons.MeleeFireStrategy
   _range: 0.75
-  _radius: 0.75
+  _radius: 0.6
+  _minimumRadiusMultiplier: 1

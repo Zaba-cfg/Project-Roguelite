@@ -17,7 +17,8 @@ MonoBehaviour:
   _damage: 10
   _fireRate: 1
   _magazineSize: 1
-  _weaponFireStrategy: {fileID: 11400000, guid: a417185c1d370be46a0562cabe38629f, type: 2}
   _reloadDuration: 0
   _maxReserveAmmo: 0
+  _spreadAngle: 90
+  _weaponFireStrategy: {fileID: 11400000, guid: a417185c1d370be46a0562cabe38629f, type: 2}
   _ammoType: 1

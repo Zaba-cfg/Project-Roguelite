@@ -9,8 +9,8 @@ namespace Components.Modifiers
     {
         public override void Modify(WeaponFireContext context)
         {
-            context.ProjectileCount++;
-            context.SpreadAngle = 10f;
+            context.AttackCount++;
+            context.SpreadAngle += 15f;
         }
     }
 }

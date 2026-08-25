@@ -10,9 +10,12 @@ namespace Components.Weapons
     {
         [SerializeField, Min(0f)] private float _range = 1.25f;
         [SerializeField, Min(0f)] private float _radius = 0.5f;
-        
+
+        [SerializeField, Range(0.5f, 1f)] private float _minimumRadiusMultiplier = 0.7f;
+
         public float Range => _range;
         public float Radius => _radius;
+        public float MinimumRadiusMultiplier => _minimumRadiusMultiplier;
 
         public override void Execute(WeaponFireContext context)
         {
@@ -22,27 +25,50 @@ namespace Components.Weapons
             if (context.Direction == Vector2.zero)
                 return;
 
-            Vector2 hitPosition = (Vector2)context.Weapon.Muzzle.position + context.Direction.normalized * _range;
+            float angleStep = context.AttackCount > 1
+                ? context.SpreadAngle / (context.AttackCount - 1)
+                : 0f;
 
-            Collider2D[] hits = Physics2D.OverlapCircleAll(hitPosition, _radius);
+            float startAngle = -context.SpreadAngle / 2f;
+
+            float hitRadius = Mathf.Max(
+                _radius / Mathf.Sqrt(context.AttackCount),
+                _radius * _minimumRadiusMultiplier);
 
             HashSet<Health> damagedTargets = new();
 
-            foreach (Collider2D hit in hits)
+            for (int i = 0; i < context.AttackCount; i++)
             {
-                if (hit.isTrigger)
-                    continue;
+                float angle = startAngle + angleStep * i;
 
-                if (hit.gameObject == context.Weapon.Owner || hit.transform.IsChildOf(context.Weapon.Owner.transform))
-                    continue;
+                Vector2 attackDirection =
+                    Quaternion.Euler(0f, 0f, angle) *
+                    context.Direction;
 
-                if (!hit.TryGetComponent(out Health health))
-                    continue;
+                Vector2 hitPosition =
+                    (Vector2)context.Weapon.Muzzle.position +
+                    attackDirection.normalized * _range;
 
-                if (!damagedTargets.Add(health))
-                    continue;
+                Collider2D[] hits = Physics2D.OverlapCircleAll(
+                    hitPosition,
+                    hitRadius);
 
-                health.TakeDamage(context.Weapon.Damage);
+                foreach (Collider2D hit in hits)
+                {
+                    if (hit.isTrigger)
+                        continue;
+
+                    if (hit.gameObject == context.Weapon.Owner || hit.transform.IsChildOf(context.Weapon.Owner.transform))
+                        continue;
+
+                    if (!hit.TryGetComponent(out Health health))
+                        continue;
+
+                    if (!damagedTargets.Add(health))
+                        continue;
+
+                    health.TakeDamage(context.Weapon.Damage);
+                }
             }
         }
     }
