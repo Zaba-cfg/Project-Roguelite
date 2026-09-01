@@ -16,6 +16,7 @@
 | **Input** | Unity Input System 1.19.0 (New only) |
 | **Color Space** | Linear |
 | **Goal** | Learn software engineering through Unity |
+| **References** | *The Binding of Isaac*, *Enter The Gungeon* |
 
 ### Visual Specs
 
@@ -49,12 +50,15 @@ The project follows a **composition-over-inheritance** architecture. Entities (`
 | **Pipeline** | `ModifierCalculator` — Add-then-Multiply | Deterministic stat modification across providers |
 | **State Machine** | `EnemyBehavior` FSM (Chasing, SeekingWeapon, Attacking) | Enemy AI decision-making |
 | **Interface Segregation** | `IMoveInput`, `IInteractable`, `IModifierProvider` | Contracts with 1–2 members; classes choose what they implement |
+| **Object Pool** | `ProjectilePool` (planned) | Reuse projectile instances — avoid Instantiate/Destroy GC pressure |
+| **Room Controller** | `RoomController` (planned) | Locks exits, spawns enemies, tracks room clear state |
+| **Template Method** | `EnemyBehavior` base + derived types | Shared FSM skeleton, overridden behavior per enemy type |
 
 ### Directory Structure
 
 ```
 Scripts/
-├── Interfaces/          # Contracts (IMoveInput, IInteractable, IModifierProvider)
+├── Interfaces/          # Contracts (IMoveInput, IInteractable, IModifierProvider, IPoolable)
 ├── Entities/            # Composition shells
 │   ├── Player/          # Player.cs
 │   └── Enemy/           # Enemy.cs
@@ -62,6 +66,7 @@ Scripts/
 │   ├── Base/            # Domain-agnostic reusable components
 │   │   ├── HealthRelated/   # Health, HealthVisualFeedback, HealthAudioFeedback
 │   │   ├── Weapon/          # WeaponPickup, WeaponDetection
+│   │   ├── Pool/            # (planned) ObjectPool<T>, IPoolable
 │   │   ├── Interaction.cs
 │   │   ├── LookDirection.cs
 │   │   └── Movement.cs
@@ -78,13 +83,28 @@ Scripts/
 │   │   ├── ModifierInstance.cs, ModifierInventory.cs, ModifierCalculator.cs
 │   │   ├── ModifierStat.cs, ModifierOperation.cs
 │   │   └── ModifierPickup.cs, TemporaryModifierPickup.cs
-│   ├── Enemy/           # Enemy AI
+│   ├── Enemy/           # Enemy AI (per-type subclasses)
 │   │   ├── EnemyAIInput.cs, EnemyCombat.cs, EnemyWeaponDecision.cs
-│   │   └── EnemyBehavior/  # EnemyBehavior.cs, EnemyState.cs
+│   │   ├── EnemyBehavior/  # EnemyBehavior.cs (base), EnemyState.cs
+│   │   ├── Types/          # (planned) ChaserEnemy, ShooterEnemy, RusherEnemy, etc.
+│   │   └── Boss/           # (planned) BossBehavior, BossPhase
 │   ├── PlayerInput/     # Unity Input System bridge
 │   │   ├── PlayerInput.cs, AimDevice.cs
-│   └── Projectile/      # Projectile + ProjectileFireStrategy
+│   ├── Projectile/      # Projectile + ProjectileFireStrategy
+│   └── Rooms/           # (planned) Room system
+│       ├── RoomController.cs
+│       ├── RoomDoor.cs
+│       ├── RoomData.cs (ScriptableObject)
+│       ├── RoomGenerator.cs
+│       └── RoomType.cs (enum)
+├── Systems/             # (planned) Global managers
+│   ├── GameManager.cs
+│   ├── RunManager.cs
+│   ├── AudioManager.cs
+│   └── ObjectPool.cs
 ├── UI/
+│   ├── HUD/             # (planned) HealthBar, RunTimer, AmmoDisplay, ModifierDisplay
+│   ├── Menus/           # (planned) MainMenu, PauseMenu, GameOverScreen, SettingsMenu
 │   └── WeaponAmmoUI/    # WeaponAmmoUI.cs
 └── Debug/               # Debug loggers and testers
     ├── HealthDebugger.cs, HealthTester.cs
@@ -346,6 +366,99 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 
 ---
 
+### 3.13 Object Pool System (Planned)
+
+> Reference: *Enter The Gungeon* — heavy bullet usage demands pooling.
+
+**Files**: `ObjectPool.cs`, `IPoolable.cs`
+
+| Component | Role |
+|-----------|------|
+| `ObjectPool<T>` | Generic pool — pre-warm, Get, Return. Manages inactive instances |
+| `IPoolable` | Interface — `OnGetFromPool()`, `OnReturnToPool()` |
+
+**Design**:
+- Pool is a `Stack<T>` per prefab type
+- Pre-warm at run start or lazily on first request
+- Projectiles implement `IPoolable` — `OnGetFromPool()` re-enables movement; `OnReturnToPool()` disables and resets
+- `ProjectileFireStrategy` uses pool instead of `Instantiate`/`Destroy`
+- Pool parented under a container `GameObject` to keep hierarchy clean
+
+**Status**: 🔲 Not started
+
+---
+
+### 3.14 Room System (Planned)
+
+> Reference: *The Binding of Isaac* — rooms are the core spatial unit.
+
+**Files**: `RoomController.cs`, `RoomDoor.cs`, `RoomData.cs`, `RoomGenerator.cs`, `RoomType.cs`
+
+#### Room Types
+| Type | Behavior |
+|------|----------|
+| **Combat** | Spawns enemies. Exits lock. Clear all enemies to unlock. |
+| **Item** | Contains a weapon or modifier pickup. No enemies. |
+| **Boss** | Final room. Boss enemy with phases. Clears = map complete. |
+| **Start** | Entry point. No enemies, no loot. |
+
+#### Room Controller
+- `RoomData` (ScriptableObject): room type, enemy wave definitions, loot tables
+- `RoomController` (MonoBehaviour): tracks enemies alive, fires `RoomCleared` event
+- Doors are `Collider2D` triggers — disabled when room is locked
+- On player enter → lock doors, spawn enemies. On all enemies dead → unlock doors.
+
+#### Map Structure
+```
+Start Room → Combat Room → Item Room → Combat Room → ... → Boss Room
+```
+- Map is a linear or branching sequence of rooms
+- Rooms connected via door triggers
+- Room layout is predefined (tilemap-based) — procedural generation is out of scope for v1
+
+#### Room Generator (Future)
+- If procedural generation is added later: `RoomGenerator` picks from a pool of room templates
+- Templates are pre-built tilemap rooms with spawn points
+- Generator connects them in a valid graph
+
+**Status**: 🔲 Not started
+
+---
+
+### 3.15 Enemy Types (Planned)
+
+> Reference: *The Binding of Isaac* — varied enemy behaviors create emergent difficulty.
+
+**Base**: `EnemyBehavior` (existing FSM) extended with per-type subclasses.
+
+| Type | Behavior | Attack Pattern |
+|------|----------|----------------|
+| **Chaser** | Moves directly toward player. No weapon — contact damage. | Melee (touch) |
+| **Shooter** | Keeps distance. Stops at optimal range and fires. | Ranged (projectile) |
+| **Rusher** | Charges in a straight line when in range. Brief telegraph. | Dash (charge) |
+| **Floater** | Moves erratically (sine wave). Fires sporadically. | Ranged (slow, erratic) |
+| **Tank** | Slow, high HP. Heavy damage. | Melee (slam) |
+| **Support** | Stays far. Buffs nearby enemies (speed/damage aura). | Passive aura |
+| **Boss** | Multi-phase. Unique patterns per phase. Summons minions. | Mixed |
+
+#### Implementation Approach
+```
+EnemyBehavior (base)        ← existing FSM skeleton
+  ├── ChaserBehavior        ← override: seek + contact damage
+  ├── ShooterBehavior       ← override: maintain distance, fire
+  ├── RusherBehavior        ← override: telegraph, charge, cooldown
+  ├── TankBehavior          ← override: slow approach, heavy melee
+  └── BossBehavior          ← override: phase system, minion spawning
+```
+
+- Each type is a `MonoBehaviour` that inherits from or composes `EnemyBehavior`
+- `EnemyData` (ScriptableObject) per type: speed, HP, attack pattern, sprite, drop table
+- `EnemyCombat` adapts per type (some use `WeaponHolder`, some use custom logic)
+
+**Status**: 🔲 Not started
+
+---
+
 ## 4. Input System
 
 **Asset**: `PlayerInputActions.inputactions`
@@ -422,6 +535,11 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 | **Enemy AI as FSM** | Simple 3-state machine — easy to extend, easy to debug |
 | **No `.asmdef` files** | Default `Assembly-CSharp` — simpler for a learning project of this scale |
 | **New Input System only** | Legacy input disabled — clean, future-proof |
+| **Room-based spatial loop** | Inspired by *The Binding of Isaac* — rooms are the core unit of progression |
+| **Predefined room layouts** | v1 uses hand-crafted tilemap rooms — procedural generation deferred to Phase 7 |
+| **Object pooling from start** | Avoids GC spikes — projectiles and entities reused, not instantiated/destroyed |
+| **Enemy types via composition** | Each enemy type is a `MonoBehaviour` composing or extending base FSM — not a monolithic class |
+| **Boss as room event** | Boss is a special room type, not a separate scene — keeps state consistent |
 
 ---
 
@@ -443,144 +561,206 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 | Enemy AI | ✅ Done | 3-state FSM, weapon seeking, combat |
 | Weapon UI | ✅ Done | Ammo display (minimal) |
 | Debug Tools | ✅ Done | Loggers + testers for all systems |
+| Object Pool | 🔲 Planned | Generic pool for projectiles and entities |
+| Room System | 🔲 Planned | Room types, doors, lock/clear mechanic |
+| Map Structure | 🔲 Planned | Linear room sequence with transitions |
+| Enemy Types | 🔲 Planned | Chaser, Shooter, Rusher, etc. |
+| Boss System | 🔲 Planned | Multi-phase boss encounter |
+| Game State | 🔲 Planned | Run/Paused/GameOver state machine |
+| Scene Flow | 🔲 Planned | Bootstrap → Menu → Gameplay |
+| Main Menu | 🔲 Planned | Start, Settings, Quit |
+| Settings | 🔲 Planned | Volume, Resolution, Fullscreen |
+| Audio Manager | 🔲 Planned | BGM + SFX layers |
+| HUD | 🔲 Planned | Health, Timer, Weapon, Modifiers |
+| Death Handling | 🔴 Blocked | Player + Enemy death logic needed |
 
 ---
 
 ## 10. What's Missing — Identified Gaps
 
-> These are the areas that need to be built or are absent from the project.
+> All gaps below are derived from the target vision: a room-based roguelite in the style of *The Binding of Isaac* and *Enter The Gungeon*.
 
 ### 10.1 Core Gameplay Gaps
 
 | Gap | Priority | Description |
 |-----|----------|-------------|
-| **Player Health Death** | 🔴 High | `Health.Died` event fires but nothing handles it — no game over, no respawn |
-| **Enemy Death** | 🔴 High | Enemy has `Health` but no death handling — no destroy, no loot drop, no feedback |
-| **Enemy Spawning** | 🔴 High | No spawn system — enemies are manually placed in scene |
-| **Level / Room System** | 🔴 High | No procedural generation or level structure — roguelite core loop missing |
-| **Game Over / Restart** | 🔴 High | No game state management — no pause, no restart, no run end |
-| **Run Meta-progression** | 🟡 Medium | Roguelite staple — persistent upgrades across runs not implemented |
-| **Health Pickup** | 🟡 Medium | No way to heal — `Health.Heal()` exists but nothing triggers it |
-| **Score / Currency** | 🟡 Medium | No scoring or currency system |
-| **Drop System** | 🟡 Medium | Enemies don't drop weapons or modifiers on death |
+| **Player Death Handling** | 🔴 High | `Health.Died` fires but nothing consumes it — no game over, no run end |
+| **Enemy Death Handling** | 🔴 High | No destroy, no loot drop, no death feedback |
+| **Object Pool** | 🔴 High | Projectiles use Instantiate/Destroy — GC spikes under heavy fire |
+| **Room System** | 🔴 High | No rooms, no doors, no lock/clear mechanic — the core spatial loop is missing |
+| **Room Types** | 🔴 High | No combat rooms, item rooms, or boss room |
+| **Enemy Spawner** | 🔴 High | Enemies manually placed — no wave/room-based spawning |
+| **Enemy Types** | 🔴 High | Only one generic enemy — no behavioral variety |
+| **Boss Enemy** | 🔴 High | No final boss, no multi-phase fight |
+| **Health Pickup** | 🟡 Medium | `Health.Heal()` exists but nothing triggers it |
+| **Drop System** | 🟡 Medium | Enemies don't drop weapons/modifiers on death |
 
-### 10.2 Scene & Flow Gaps
+### 10.2 Map & Flow Gaps
 
 | Gap | Priority | Description |
 |-----|----------|-------------|
-| **Scene Flow** | 🔴 High | Bootstrap, MainMenu, Gameplay scenes are empty — no scene loading |
+| **Game State Manager** | 🔴 High | No singleton managing Run / Paused / GameOver states |
+| **Scene Flow** | 🔴 High | Bootstrap, MainMenu, Gameplay scenes empty — no scene loading |
 | **Main Menu** | 🔴 High | No main menu UI |
-| **Game State Manager** | 🔴 High | No singleton/global state for run tracking |
-| **Loading / Transitions** | 🟡 Medium | No scene transitions or loading screens |
+| **Run Manager** | 🔴 High | No run timer, no run state tracking |
+| **Map Structure** | 🔴 High | No room sequence — no start → combat → item → boss flow |
+| **Door / Lock System** | 🔴 High | No doors that lock on enter and unlock on room clear |
+| **Game Over Screen** | 🔴 High | No death screen, no restart option |
+| **Pause Menu** | 🟡 Medium | No pause functionality |
+| **Settings Menu** | 🟡 Medium | No volume, resolution, or display settings |
 
 ### 10.3 UI Gaps
 
 | Gap | Priority | Description |
 |-----|----------|-------------|
-| **Health Bar** | 🔴 High | No player health UI |
-| **Weapon HUD** | 🟡 Medium | Only ammo shown — no weapon icon, no cooldown indicator |
-| **Modifier Display** | 🟡 Medium | No active modifier HUD |
-| **Pause Menu** | 🟡 Medium | No pause functionality |
-| **Settings Menu** | 🟢 Low | No audio/graphics settings |
-| **Damage Numbers** | 🟢 Low | No floating combat text |
-| **Enemy Health Bar** | 🟢 Low | No enemy health display |
+| **Health Bar** | 🔴 High | No player health display |
+| **Run Timer** | 🔴 High | No elapsed time display |
+| **Ammo Display** | 🟡 Medium | Existing `WeaponAmmoUI` is minimal — needs weapon icon, name |
+| **Modifier HUD** | 🟡 Medium | No active modifier display |
+| **Minimap** | 🟢 Low | No room/level overview |
 
 ### 10.4 Audio Gaps
 
 | Gap | Priority | Description |
 |-----|----------|-------------|
-| **Audio Manager** | 🟡 Medium | No global audio management — individual AudioSources only |
-| **Music System** | 🟡 Medium | No background music |
-| **Ambient Audio** | 🟢 Low | No environmental sounds |
-| **SFX Pooling** | 🟢 Low | No object pooling for audio |
+| **Audio Manager** | 🔴 High | No global audio management — individual AudioSources only |
+| **Music System** | 🔴 High | No background music |
+| **Room SFX** | 🟡 Medium | No door lock/unlock sounds, no room clear jingle |
+| **Enemy SFX** | 🟡 Medium | No enemy-specific attack/death sounds |
+| **Boss SFX** | 🟡 Medium | No boss entrance, phase transition, death sounds |
 
 ### 10.5 Visual Gaps
 
 | Gap | Priority | Description |
 |-----|----------|-------------|
-| **Player Sprite** | 🟡 Medium | Cyan placeholder square |
-| **Enemy Sprite** | 🟡 Medium | Red placeholder square |
-| **Tilemap** | 🟡 Medium | No environment tiles — empty scenes |
-| **Animations** | 🟡 Medium | No sprite animations (2D Animation package imported but unused) |
-| **Particle Effects** | 🟢 Low | No VFX — muzzle flash is sprite swap only |
-| **Screen Shake** | 🟢 Low | No camera effects |
+| **Player Sprite** | 🔴 High | Cyan placeholder square |
+| **Enemy Sprites** | 🔴 High | Red placeholder square — one sprite for all types |
+| **Room Tilemap** | 🔴 High | No environment tiles — empty scenes |
+| **Door Sprites** | 🟡 Medium | No visual door objects |
+| **Animations** | 🟡 Medium | No sprite animations (2D Animation package imported, unused) |
+| **Particle Effects** | 🟡 Medium | Muzzle flash is sprite swap only — no blood, sparks, etc. |
+| **Screen Shake** | 🟡 Medium | No camera juice |
+| **Damage Numbers** | 🟢 Low | No floating combat text |
 
 ### 10.6 Technical Gaps
 
 | Gap | Priority | Description |
 |-----|----------|-------------|
-| **Object Pooling** | 🟡 Medium | `Instantiate`/`Destroy` for projectiles — will cause GC pressure |
 | **Scene Management** | 🔴 High | No `SceneManager` usage — no scene loading flow |
+| **Unit Tests** | 🟡 Medium | `test-framework` imported — zero test files |
 | **Save System** | 🟢 Low | No persistence |
 | **Localization** | 🟢 Low | No i18n |
-| **Unit Tests** | 🟡 Medium | `test-framework` imported but zero test files |
-| **CI/CD** | 🟢 Low | No automated build pipeline |
 
 ---
 
 ## 11. Roadmap — Work Plan
 
-### Phase 1: Core Loop (🔴 Critical)
+> Ordered by dependency. Each phase builds on the previous.
+> Reference: *The Binding of Isaac* (room flow, item rooms, boss fights) / *Enter The Gungeon* (projectile density, dodge mechanics, weapon variety).
 
-> Make the game playable — survive, fight, die, restart.
+### Phase 1: Foundation (🔴 Critical)
 
-| # | Task | Description | Depends On |
-|---|------|-------------|------------|
-| 1.1 | **Enemy Death Handling** | Destroy enemy on `Health.Died`, add death feedback (flash/destroy) | — |
-| 1.2 | **Player Death Handling** | Handle `Health.Died` on player — game over state, disable input | — |
-| 1.3 | **Game State Manager** | Singleton managing Run/GameOver/Paused states | — |
-| 1.4 | **Scene Flow** | Bootstrap → MainMenu → Gameplay scene loading | 1.3 |
-| 1.5 | **Main Menu UI** | Start Game, Quit buttons | 1.4 |
-| 1.6 | **Game Over Screen** | Show score/time, restart button | 1.2, 1.3 |
-| 1.7 | **Health Bar UI** | Player health display | — |
-| 1.8 | **Pause Menu** | ESC to pause, resume, quit to menu | 1.3 |
-
-### Phase 2: Roguelite Loop (🟡 Important)
-
-> Add the meta-game — drops, pickups, spawning, progression.
+> Core infrastructure that everything else depends on.
 
 | # | Task | Description | Depends On |
 |---|------|-------------|------------|
-| 2.1 | **Enemy Spawner** | Wave/room-based enemy spawning | 1.3, 1.1 |
-| 2.2 | **Weapon Drop on Death** | Enemies drop held weapon on death | 1.1 |
-| 2.3 | **Modifier Drop System** | Enemies/pickups drop modifiers | 1.1 |
-| 2.4 | **Health Pickup** | Consumable that heals player | — |
-| 2.5 | **Score / Currency** | Track kills, currency for shop | 1.3 |
-| 2.6 | **Run Timer** | Display run duration | 1.3 |
-| 2.7 | **Modifier HUD** | Show active modifiers on screen | — |
-| 2.8 | **Unit Tests** | Test Health, ModifierCalculator, Weapon fire logic | — |
+| 1.1 | **Object Pool** | Generic `ObjectPool<T>` + `IPoolable` interface. Pre-warm, get, return. | — |
+| 1.2 | **Game State Manager** | Singleton: `MainMenu`, `Running`, `Paused`, `GameOver`. Scene-agnostic. | — |
+| 1.3 | **Run Manager** | Tracks run timer, current room, run stats. Consumes GameState. | 1.2 |
+| 1.4 | **Scene Flow** | Bootstrap → MainMenu → Gameplay. `SceneManager.LoadSceneAsync`. | 1.2 |
+| 1.5 | **Main Menu UI** | Title, Start Game, Settings, Quit. | 1.4 |
+| 1.6 | **Settings Menu** | Music volume, SFX volume, resolution dropdown, fullscreen toggle. | 1.4 |
+| 1.7 | **Pause Menu** | ESC toggle. Resume, Settings, Quit to Menu. | 1.2 |
+| 1.8 | **Audio Manager** | Singleton. BGM layer + SFX layer. Volume control via Settings. | 1.6 |
 
-### Phase 3: Polish & Content (🟢 Nice to Have)
+### Phase 2: Death & Feedback (🔴 Critical)
 
-> Make it feel good — visuals, audio, juice.
-
-| # | Task | Description | Depends On |
-|---|------|-------------|------------|
-| 3.1 | **Placeholder Sprites** | Replace colored squares with temp art | — |
-| 3.2 | **Sprite Animations** | Idle, walk, attack, death for player/enemy | 3.1 |
-| 3.3 | **Tilemap Environment** | Basic room/arena with tiles | — |
-| 3.4 | **Audio Manager** | Global audio with BGM, SFX layers | — |
-| 3.5 | **Music System** | Background music per scene/state | 3.4 |
-| 3.6 | **Screen Shake** | Camera juice on hit/fire | — |
-| 3.7 | **Damage Numbers** | Floating combat text | — |
-| 3.8 | **Projectile Pooling** | Object pool for projectiles | — |
-| 3.9 | **Settings Menu** | Audio/graphics sliders | — |
-| 3.10 | **Weapon HUD** | Full weapon display (icon, name, cooldown) | — |
-
-### Phase 4: Roguelite Depth (Future)
-
-> Advanced features for replayability.
+> Make entities die properly and give the player feedback.
 
 | # | Task | Description | Depends On |
 |---|------|-------------|------------|
-| 4.1 | **Meta-progression** | Persistent upgrades between runs | 1.3 |
-| 4.2 | **Shop System** | Spend currency on weapons/modifiers | 2.5 |
-| 4.3 | **Room Generation** | Procedural room layouts | 3.3 |
-| 4.4 | **Boss Enemies** | Special enemy types with unique mechanics | 1.1 |
-| 4.5 | **More Weapon Types** | New fire strategies (beam, shotgun, etc.) | — |
-| 4.6 | **More Modifiers** | New modifier definitions | — |
-| 4.7 | **Challenge Runs** | Modifiers that increase difficulty | 4.1 |
-| 4.8 | **Leaderboard** | High score persistence | 2.5 |
+| 2.1 | **Enemy Death Handling** | `Health.Died` → death animation, loot drop, destroy/return to pool | 1.1, 1.2 |
+| 2.2 | **Player Death Handling** | `Health.Died` → disable input, death animation, GameOver state | 1.2 |
+| 2.3 | **Health Bar UI** | Player health bar (slider or segmented). Binds to `Health.HealthChanged`. | — |
+| 2.4 | **Run Timer UI** | Elapsed time display. Binds to RunManager. | 1.3 |
+| 2.5 | **Weapon HUD** | Weapon icon, name, ammo/reserve, reload indicator. | — |
+| 2.6 | **Game Over Screen** | Run stats (time, kills, rooms cleared), Restart, Main Menu buttons. | 2.2, 1.2 |
+| 2.7 | **Projectile Pooling** | Refactor `ProjectileFireStrategy` to use `ObjectPool<Projectile>`. | 1.1 |
+| 2.8 | **Screen Shake** | Camera shake on fire, hit, death. Coroutine-based. | — |
+
+### Phase 3: Room System (🔴 Critical)
+
+> The spatial backbone of the game.
+
+| # | Task | Description | Depends On |
+|---|------|-------------|------------|
+| 3.1 | **RoomData (SO)** | Room type, dimensions, door positions, enemy wave definitions, loot table. | — |
+| 3.2 | **RoomController** | Tracks enemies alive. `RoomCleared` event. Lock/unlock doors. | 1.2 |
+| 3.3 | **RoomDoor** | Collider2D trigger. Locks on room enter, unlocks on room clear. | 3.2 |
+| 3.4 | **Map Structure** | Linear room sequence: Start → Combat → Item → Combat → ... → Boss. | 3.1, 3.2 |
+| 3.5 | **Room Transitions** | Player enters door → fade/transition → load next room. | 3.4, 1.4 |
+| 3.6 | **Room Tilemap** | Base room template: walls, floor, door sockets. 16×16 tileset. | 3.1 |
+| 3.7 | **Combat Room** | Spawns enemy waves on enter. Clears when all enemies dead. | 3.2, 2.1 |
+| 3.8 | **Item Room** | Contains weapon or modifier pickup. No enemies. | 3.2 |
+| 3.9 | **Start Room** | Entry point. No enemies, no loot. | 3.2 |
+
+### Phase 4: Enemy Variety (🟡 Important)
+
+> Different enemies create emergent gameplay.
+
+| # | Task | Description | Depends On |
+|---|------|-------------|------------|
+| 4.1 | **EnemyData (SO)** | Per-type stats: speed, HP, damage, attack pattern, sprite, drop table. | — |
+| 4.2 | **Chaser Enemy** | Moves toward player. Contact damage. No weapon. | 2.1 |
+| 4.3 | **Shooter Enemy** | Maintains distance. Fires projectiles at player. | 2.1, 1.1 |
+| 4.4 | **Rusher Enemy** | Telegraphs, then charges in a line. Brief stun after. | 2.1 |
+| 4.5 | **Enemy Spawner** | Room-level spawner. Spawns waves from `RoomData` definitions. | 3.7 |
+| 4.6 | **Drop System** | Enemies drop weapons/modifiers/health on death based on `EnemyData` drop table. | 2.1 |
+| 4.7 | **Health Pickup** | Consumable that heals player. Drops from enemies or found in item rooms. | 4.6, 3.8 |
+
+### Phase 5: Boss & Progression (🟡 Important)
+
+> The climax of each map run.
+
+| # | Task | Description | Depends On |
+|---|------|-------------|------------|
+| 5.1 | **Boss Room** | Special room type. Triggers boss encounter on enter. | 3.2 |
+| 5.2 | **Boss Enemy** | Multi-phase enemy. Unique attack patterns per phase. High HP. | 4.1 |
+| 5.3 | **Boss Phases** | Phase transitions: HP thresholds trigger new attack patterns, telegraph, UI. | 5.2 |
+| 5.4 | **Boss Drops** | Boss drops unique weapon/modifier on death. | 5.2, 4.6 |
+| 5.5 | **Map Complete** | Boss death → victory screen → back to main menu. | 5.2, 2.6 |
+
+### Phase 6: Polish & Juice (🟢 Nice to Have)
+
+> Make it feel good — visuals, audio, game feel.
+
+| # | Task | Description | Depends On |
+|---|------|-------------|------------|
+| 6.1 | **Placeholder Sprites** | Replace colored squares with temp pixel art for all entities. | — |
+| 6.2 | **Sprite Animations** | Idle, walk, attack, death for player, enemies, boss. | 6.1 |
+| 6.3 | **Room Tileset** | 16×16 tileset: walls, floors, doors, decorations. | 3.6 |
+| 6.4 | **Music** | BGM per state: menu, combat, boss, item room. | 1.8 |
+| 6.5 | **Enemy SFX** | Attack, death, and ambient sounds per enemy type. | 1.8, 4.2-4.4 |
+| 6.6 | **Boss SFX** | Entrance, phase transition, death sounds. | 1.8, 5.2 |
+| 6.7 | **Particle Effects** | Blood splatter, muzzle sparks, death burst, room clear effect. | 6.1 |
+| 6.8 | **Damage Numbers** | Floating text on hit. Color-coded (normal, crit). | — |
+| 6.9 | **Modifier HUD** | Active modifier icons with duration bars. | — |
+| 6.10 | **Minimap** | Room overview showing visited/current room. | 3.4 |
+
+### Phase 7: Content Expansion (Future)
+
+> More stuff, more runs, more replayability.
+
+| # | Task | Description | Depends On |
+|---|------|-------------|------------|
+| 7.1 | **More Weapon Types** | New fire strategies: beam, shotgun, launcher, thrown. | 1.1 |
+| 7.2 | **More Modifiers** | New stat and weapon fire modifiers. | — |
+| 7.3 | **More Enemy Types** | Floater, Tank, Support, etc. | 4.1 |
+| 7.4 | **Room Templates** | More room layouts for variety. | 3.6 |
+| 7.5 | **Procedural Generation** | `RoomGenerator` picks from template pool, connects valid graphs. | 3.4 |
+| 7.6 | **Meta-progression** | Persistent upgrades across runs. | 1.3 |
+| 7.7 | **Shop System** | Spend currency on weapons/modifiers between rooms. | 4.6 |
+| 7.8 | **Challenge Runs** | Difficulty modifiers (more enemies, less HP, harder bosses). | 7.6 |
 
 ---
 
