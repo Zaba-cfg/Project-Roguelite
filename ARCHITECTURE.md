@@ -5,6 +5,41 @@
 
 ---
 
+## Index
+
+| Section | Description |
+|---------|-------------|
+| [1. Project Identity](#1-project-identity) | Engine, render specs, references, branches |
+| [2. Architecture Overview](#2-architecture-overview) | Patterns, directory structure |
+| [3. Systems Documentation](#3-systems-documentation) | All implemented and planned systems |
+| &emsp; 3.1 [Health](#31-health-system) | HP container, visual/audio feedback |
+| &emsp; 3.2 [Movement](#32-movement-system) | Interface-driven, modifier-aware |
+| &emsp; 3.3 [Look Direction](#33-look-direction-system) | 2D rotation |
+| &emsp; 3.4 [Weapon System](#34-weapon-system) | Core weapon logic, strategies, data |
+| &emsp; 3.5 [Projectile System](#35-projectile-system) | Bullet movement, damage, auto-destroy |
+| &emsp; 3.6 [Modifier System](#36-modifier-system) | Add-then-Multiply pipeline |
+| &emsp; 3.7 [Interaction System](#37-interaction-system) | Trigger-based closest selection |
+| &emsp; 3.8 [Weapon Pickup & Detection](#38-weapon-pickup--detection) | Pickup and area scanning |
+| &emsp; 3.9 [Player Input](#39-player-input-system) | Mouse + Gamepad, IMoveInput |
+| &emsp; 3.10 [Enemy AI](#310-enemy-ai-system) | 3-state FSM |
+| &emsp; 3.11 [UI System](#311-ui-system) | Ammo display |
+| &emsp; 3.12 [Debug System](#312-debug-system) | Loggers and testers |
+| &emsp; 3.13 [Object Pool](#313-object-pool-system-planned) | Generic pooling (planned) |
+| &emsp; 3.14 [Room System](#314-room-system-planned) | Rooms, doors, map structure (planned) |
+| &emsp; 3.15 [Enemy Types](#315-enemy-types-planned) | Per-type behaviors (planned) |
+| [4. Input System](#4-input-system) | Action bindings |
+| [5. Scenes](#5-scenes) | Scene list and build status |
+| [6. Prefabs](#6-prefabs) | Prefab inventory |
+| [7. Packages](#7-packages) | Package dependencies |
+| [8. Key Design Decisions](#8-key-design-decisions) | Architectural rationale |
+| [9. What Has Been Done](#9-what-has-been-done--status-matrix) | Status matrix |
+| [10. What's Missing](#10-whats-missing--identified-gaps) | Identified gaps |
+| [11. Roadmap](#11-roadmap--work-plan) | 7-phase work plan |
+| [12. Asset Inventory](#12-asset-inventory) | SO assets, audio, sprites, prefabs |
+| [13. Technical Notes](#13-technical-notes) | Pipeline diagrams, pseudocode |
+
+---
+
 ## 1. Project Identity
 
 | Field | Value |
@@ -433,22 +468,44 @@ Start Room → Combat Room → Item Room → Combat Room → ... → Boss Room
 
 | Type | Behavior | Attack Pattern |
 |------|----------|----------------|
-| **Chaser** | Moves directly toward player. No weapon — contact damage. | Melee (touch) |
+| **Chaser** | Moves directly toward player. Melee only. | Melee |
 | **Shooter** | Keeps distance. Stops at optimal range and fires. | Ranged (projectile) |
-| **Rusher** | Charges in a straight line when in range. Brief telegraph. | Dash (charge) |
+| **Rusher** | Charges in a straight line when in range. Brief telegraph. Melee only. | Dash (charge) |
 | **Floater** | Moves erratically (sine wave). Fires sporadically. | Ranged (slow, erratic) |
-| **Tank** | Slow, high HP. Heavy damage. | Melee (slam) |
+| **Tank** | Slow, high HP. Uses a heavy slow weapon with great damage and slow projectile speed. | Ranged (heavy, slow) |
 | **Support** | Stays far. Buffs nearby enemies (speed/damage aura). | Passive aura |
+| **Robber** | If player has weapon: rushes in, steals it, runs away, then shoots player with it after a few seconds. If player has no weapon: hides and stays as far as possible until player picks one up. | Adaptive (steal → ranged) |
 | **Boss** | Multi-phase. Unique patterns per phase. Summons minions. | Mixed |
 
 #### Implementation Approach
 ```
 EnemyBehavior (base)        ← existing FSM skeleton
-  ├── ChaserBehavior        ← override: seek + contact damage
+  ├── ChaserBehavior        ← override: seek + contact damage (melee only)
   ├── ShooterBehavior       ← override: maintain distance, fire
-  ├── RusherBehavior        ← override: telegraph, charge, cooldown
-  ├── TankBehavior          ← override: slow approach, heavy melee
+  ├── RusherBehavior        ← override: telegraph, charge, cooldown (melee only)
+  ├── TankBehavior          ← override: slow approach, heavy slow projectile
+  ├── RobberBehavior        ← override: steal weapon, flee, then shoot
   └── BossBehavior          ← override: phase system, minion spawning
+```
+
+#### Robber FSM Detail
+```
+Hiding (player has no weapon)
+  ├─ player picks up weapon → Stealing
+  └─ stays far, avoids contact
+
+Stealing (player has weapon)
+  ├─ rush toward player's holder
+  ├─ on reach: steal weapon (unequip from player, equip on self)
+  └─ → Fleeing
+
+Fleeing
+  ├─ run away from player for N seconds
+  └─ → Attacking
+
+Attacking
+  ├─ stop, face player, fire stolen weapon
+  └─ continue attacking until weapon empty or player dies
 ```
 
 - Each type is a `MonoBehaviour` that inherits from or composes `EnemyBehavior`
@@ -711,12 +768,13 @@ EnemyBehavior (base)        ← existing FSM skeleton
 | # | Task | Description | Depends On |
 |---|------|-------------|------------|
 | 4.1 | **EnemyData (SO)** | Per-type stats: speed, HP, damage, attack pattern, sprite, drop table. | — |
-| 4.2 | **Chaser Enemy** | Moves toward player. Contact damage. No weapon. | 2.1 |
+| 4.2 | **Chaser Enemy** | Moves toward player. Contact damage. Melee only. | 2.1 |
 | 4.3 | **Shooter Enemy** | Maintains distance. Fires projectiles at player. | 2.1, 1.1 |
-| 4.4 | **Rusher Enemy** | Telegraphs, then charges in a line. Brief stun after. | 2.1 |
-| 4.5 | **Enemy Spawner** | Room-level spawner. Spawns waves from `RoomData` definitions. | 3.7 |
-| 4.6 | **Drop System** | Enemies drop weapons/modifiers/health on death based on `EnemyData` drop table. | 2.1 |
-| 4.7 | **Health Pickup** | Consumable that heals player. Drops from enemies or found in item rooms. | 4.6, 3.8 |
+| 4.4 | **Rusher Enemy** | Telegraphs, then charges in a line. Melee only. Brief stun after. | 2.1 |
+| 4.5 | **Robber Enemy** | Steals player weapon if equipped, flees, then shoots. Hides if player unarmed. | 2.1, 1.1 |
+| 4.6 | **Enemy Spawner** | Room-level spawner. Spawns waves from `RoomData` definitions. | 3.7 |
+| 4.7 | **Drop System** | Enemies drop weapons/modifiers/health on death based on `EnemyData` drop table. | 2.1 |
+| 4.8 | **Health Pickup** | Consumable that heals player. Drops from enemies or found in item rooms. | 4.7, 3.8 |
 
 ### Phase 5: Boss & Progression (🟡 Important)
 
