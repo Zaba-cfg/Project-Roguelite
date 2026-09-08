@@ -1,7 +1,7 @@
 # Project-Roguelite — Architecture & Roadmap
 
 > **Document State**: Alive roadmap — updated during development.
-> **Last Updated**: 2026-09-01
+> **Last Updated**: 2026-09-08
 
 ---
 
@@ -10,33 +10,34 @@
 | Section | Description |
 |---------|-------------|
 | [1. Project Identity](#1-project-identity) | Engine, render specs, references, branches |
-| [2. Architecture Overview](#2-architecture-overview) | Patterns, directory structure |
-| [3. Systems Documentation](#3-systems-documentation) | All implemented and planned systems |
-| &emsp; 3.1 [Health](#31-health-system) | HP container, visual/audio feedback |
-| &emsp; 3.2 [Movement](#32-movement-system) | Interface-driven, modifier-aware |
-| &emsp; 3.3 [Look Direction](#33-look-direction-system) | 2D rotation |
-| &emsp; 3.4 [Weapon System](#34-weapon-system) | Core weapon logic, strategies, data |
-| &emsp; 3.5 [Projectile System](#35-projectile-system) | Bullet movement, damage, auto-destroy |
-| &emsp; 3.6 [Modifier System](#36-modifier-system) | Add-then-Multiply pipeline |
-| &emsp; 3.7 [Interaction System](#37-interaction-system) | Trigger-based closest selection |
-| &emsp; 3.8 [Weapon Pickup & Detection](#38-weapon-pickup--detection) | Pickup and area scanning |
-| &emsp; 3.9 [Player Input](#39-player-input-system) | Mouse + Gamepad, IMoveInput |
-| &emsp; 3.10 [Enemy AI](#310-enemy-ai-system) | 3-state FSM |
-| &emsp; 3.11 [UI System](#311-ui-system) | Ammo display |
-| &emsp; 3.12 [Debug System](#312-debug-system) | Loggers and testers |
-| &emsp; 3.13 [Object Pool](#313-object-pool-system-planned) | Generic pooling (planned) |
-| &emsp; 3.14 [Room System](#314-room-system-planned) | Rooms, doors, map structure (planned) |
-| &emsp; 3.15 [Enemy Types](#315-enemy-types-planned) | Per-type behaviors (planned) |
-| [4. Input System](#4-input-system) | Action bindings |
-| [5. Scenes](#5-scenes) | Scene list and build status |
-| [6. Prefabs](#6-prefabs) | Prefab inventory |
-| [7. Packages](#7-packages) | Package dependencies |
-| [8. Key Design Decisions](#8-key-design-decisions) | Architectural rationale |
-| [9. What Has Been Done](#9-what-has-been-done--status-matrix) | Status matrix |
-| [10. What's Missing](#10-whats-missing--identified-gaps) | Identified gaps |
-| [11. Roadmap](#11-roadmap--work-plan) | 7-phase work plan |
-| [12. Asset Inventory](#12-asset-inventory) | SO assets, audio, sprites, prefabs |
-| [13. Technical Notes](#13-technical-notes) | Pipeline diagrams, pseudocode |
+| [2. Game Vision](#2-game-vision) | Idea, concept, game loop, win/loss conditions |
+| [3. Architecture Overview](#3-architecture-overview) | Patterns, directory structure |
+| [4. Systems Documentation](#4-systems-documentation) | All implemented and planned systems |
+| &emsp; 4.1 [Health](#41-health-system) | HP container, visual/audio feedback |
+| &emsp; 4.2 [Movement](#42-movement-system) | Interface-driven, modifier-aware |
+| &emsp; 4.3 [Look Direction](#43-look-direction-system) | 2D rotation |
+| &emsp; 4.4 [Weapon System](#44-weapon-system) | Core weapon logic, strategies, data |
+| &emsp; 4.5 [Projectile System](#45-projectile-system) | Bullet movement, damage, auto-destroy |
+| &emsp; 4.6 [Modifier System](#46-modifier-system) | Add-then-Multiply pipeline |
+| &emsp; 4.7 [Interaction System](#47-interaction-system) | Trigger-based closest selection |
+| &emsp; 4.8 [Weapon Pickup & Detection](#48-weapon-pickup--detection) | Pickup and area scanning |
+| &emsp; 4.9 [Player Input](#49-player-input-system) | Mouse + Gamepad, IMoveInput |
+| &emsp; 4.10 [Enemy AI](#410-enemy-ai-system) | 3-state FSM |
+| &emsp; 4.11 [UI System](#411-ui-system) | Ammo display |
+| &emsp; 4.12 [Debug System](#412-debug-system) | Loggers and testers |
+| &emsp; 4.13 [Object Pool](#413-object-pool-system-planned) | Generic pooling (planned) |
+| &emsp; 4.14 [Room System](#414-room-system-planned) | Rooms, doors, map structure (planned) |
+| &emsp; 4.15 [Enemy Types](#415-enemy-types-planned) | Per-type behaviors (planned) |
+| [5. Input System](#5-input-system) | Action bindings |
+| [6. Scenes](#6-scenes) | Scene list and build status |
+| [7. Prefabs](#7-prefabs) | Prefab inventory |
+| [8. Packages](#8-packages) | Package dependencies |
+| [9. Key Design Decisions](#9-key-design-decisions) | Architectural rationale |
+| [10. What Has Been Done](#10-what-has-been-done--status-matrix) | Status matrix |
+| [11. What's Missing](#11-whats-missing--identified-gaps) | Identified gaps |
+| [12. Roadmap](#12-roadmap--work-plan) | 7-phase work plan |
+| [13. Asset Inventory](#13-asset-inventory) | SO assets, audio, sprites, prefabs |
+| [14. Technical Notes](#14-technical-notes) | Pipeline diagrams, pseudocode |
 
 ---
 
@@ -71,7 +72,66 @@
 
 ---
 
-## 2. Architecture Overview
+## 2. Game Vision
+
+### 2.1 The Idea
+
+A **2D top-down roguelite dungeon crawler** inspired by *The Binding of Isaac* and *Enter The Gungeon*. The player explores a dungeon composed of rooms, fighting enemies with a variety of weapons and collecting modifiers that alter their stats and abilities. Each run is unique due to random weapon drops, modifier combinations, and enemy encounters.
+
+### 2.2 The Concept
+
+| Aspect | Description |
+|--------|-------------|
+| **Genre** | 2D top-down roguelite shooter |
+| **Setting** | Dark dungeon with fantasy-themed monsters and environments |
+| **Core Fantasy** | Survive increasingly difficult rooms by finding better weapons and stacking powerful modifiers |
+| **Perspective** | Top-down pixel art aesthetic (320×180 logic resolution, 16 PPU) |
+| **Controls** | Dual-stick style — WASD movement, mouse/gamepad aim |
+
+**Key Pillars:**
+- **Weapon Variety**: Melee, projectile, and future weapon types — each with unique fire strategies
+- **Modifier Stacking**: Combine modifiers (Double Damage + Double Fire Rate + Double Shot) to create broken builds
+- **Enemy Variety**: Different enemy types (Chaser, Shooter, Rusher, Robber, Tank) require different strategies
+- **Permadeath**: Every run is a fresh start. No continues, no checkpoints.
+
+### 2.3 The Game Loop
+
+Each run follows this cycle:
+
+```
+Start Room → [Combat Room → Item Room] × N → Boss Room → Victory / Game Over
+```
+
+| Phase | Description |
+|-------|-------------|
+| **1. Start Room** | Entry point. No enemies, no loot. Prepare and move forward. |
+| **2. Combat Room** | Doors lock on entry. Waves of enemies spawn. Clear all enemies to unlock doors and proceed. |
+| **3. Item Room** | Contains a weapon or modifier pickup. No enemies. Choose your reward. |
+| **4. Repeat** | Cycle through combat and item rooms, growing stronger with each clear. |
+| **5. Boss Room** | Final encounter. Multi-phase boss with unique attack patterns. Defeat it to complete the run. |
+
+**Between Rooms:** Player chooses which door to enter (branching paths planned for future).
+
+```
+                         ┌─ Combat ─ Item ─┐
+Start ─ Combat ─ Item ──┤                  ├─ Boss
+                         └─ Combat ─ Item ─┘
+```
+
+### 2.4 Win & Loss Conditions
+
+| Condition | Trigger | Result |
+|-----------|---------|--------|
+| **Win** | Defeat the Boss in the Boss Room | Victory screen → Main Menu → Start a new run |
+| **Lose** | Player health reaches 0 (permadeath) | Game Over screen → Run stats (time, kills, rooms cleared) → Main Menu → Start a new run |
+
+**Permadeath Rule:** There are no continues or checkpoints. Death ends the run permanently. Progress is not saved between runs (meta-progression is a future consideration under Phase 7).
+
+**No Other Loss Conditions:** Time limits, survival goals, or other failure states are not part of the core design. The only way to lose is to die.
+
+---
+
+## 3. Architecture Overview
 
 The project follows a **composition-over-inheritance** architecture. Entities (`Player`, `Enemy`) are thin shells that assemble behavior through `[RequireComponent]` MonoBehaviours. Data lives in ScriptableObjects. Communication uses C# `Action` events.
 
@@ -148,9 +208,9 @@ Scripts/
 
 ---
 
-## 3. Systems Documentation
+## 4. Systems Documentation
 
-### 3.1 Health System
+### 4.1 Health System
 
 **Files**: `Health.cs`, `HealthVisualFeedback.cs`, `HealthAudioFeedback.cs`
 
@@ -169,7 +229,7 @@ Scripts/
 
 ---
 
-### 3.2 Movement System
+### 4.2 Movement System
 
 **File**: `Movement.cs`
 
@@ -182,7 +242,7 @@ Scripts/
 
 ---
 
-### 3.3 Look Direction System
+### 4.3 Look Direction System
 
 **File**: `LookDirection.cs`
 
@@ -194,7 +254,7 @@ Scripts/
 
 ---
 
-### 3.4 Weapon System
+### 4.4 Weapon System
 
 **Core Files**: `Weapon.cs`, `WeaponHolder.cs`, `WeaponData.cs`, `WeaponFireStrategy.cs`, `WeaponFireContext.cs`, `WeaponFireResult.cs`, `WeaponAmmoType.cs`
 
@@ -240,7 +300,7 @@ Scripts/
 
 ---
 
-### 3.5 Projectile System
+### 4.5 Projectile System
 
 **Files**: `Projectile.cs`, `ProjectileFireStrategy.cs`
 
@@ -253,7 +313,7 @@ Scripts/
 
 ---
 
-### 3.6 Modifier System
+### 4.6 Modifier System
 
 **Core Files**: `ModifierDefinition.cs`, `StatModifierDefinition.cs`, `DoubleShotModifierDefinition.cs`, `ModifierInstance.cs`, `ModifierInventory.cs`, `ModifierCalculator.cs`, `ModifierStat.cs`, `ModifierOperation.cs`
 
@@ -294,7 +354,7 @@ result = baseValue
 
 ---
 
-### 3.7 Interaction System
+### 4.7 Interaction System
 
 **File**: `Interaction.cs`
 
@@ -307,7 +367,7 @@ result = baseValue
 
 ---
 
-### 3.8 Weapon Pickup & Detection
+### 4.8 Weapon Pickup & Detection
 
 **Files**: `WeaponPickup.cs`, `WeaponDetection.cs`
 
@@ -320,7 +380,7 @@ result = baseValue
 
 ---
 
-### 3.9 Player Input System
+### 4.9 Player Input System
 
 **Files**: `PlayerInput.cs`, `AimDevice.cs`, `PlayerInputActions.cs` (auto-generated)
 
@@ -342,7 +402,7 @@ result = baseValue
 
 ---
 
-### 3.10 Enemy AI System
+### 4.10 Enemy AI System
 
 **Files**: `EnemyAIInput.cs`, `EnemyCombat.cs`, `EnemyWeaponDecision.cs`, `EnemyBehavior.cs`, `EnemyState.cs`
 
@@ -374,7 +434,7 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 
 ---
 
-### 3.11 UI System
+### 4.11 UI System
 
 **File**: `WeaponAmmoUI.cs`
 
@@ -386,7 +446,7 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 
 ---
 
-### 3.12 Debug System
+### 4.12 Debug System
 
 **Files**: `HealthDebugger.cs`, `HealthTester.cs`, `WeaponDebugger.cs`, `ModifierDebugger.cs`
 
@@ -401,7 +461,7 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 
 ---
 
-### 3.13 Object Pool System (Planned)
+### 4.13 Object Pool System (Planned)
 
 > Reference: *Enter The Gungeon* — heavy bullet usage demands pooling.
 
@@ -423,7 +483,7 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 
 ---
 
-### 3.14 Room System (Planned)
+### 4.14 Room System (Planned)
 
 > Reference: *The Binding of Isaac* — rooms are the core spatial unit.
 
@@ -460,7 +520,7 @@ Start Room → Combat Room → Item Room → Combat Room → ... → Boss Room
 
 ---
 
-### 3.15 Enemy Types (Planned)
+### 4.15 Enemy Types (Planned)
 
 > Reference: *The Binding of Isaac* — varied enemy behaviors create emergent difficulty.
 
@@ -516,7 +576,7 @@ Attacking
 
 ---
 
-## 4. Input System
+## 5. Input System
 
 **Asset**: `PlayerInputActions.inputactions`
 
@@ -533,7 +593,7 @@ Attacking
 
 ---
 
-## 5. Scenes
+## 6. Scenes
 
 | Scene | In Build | Status | Contents |
 |-------|----------|--------|----------|
@@ -544,7 +604,7 @@ Attacking
 
 ---
 
-## 6. Prefabs
+## 7. Prefabs
 
 | Prefab | Description |
 |--------|-------------|
@@ -555,7 +615,7 @@ Attacking
 
 ---
 
-## 7. Packages
+## 8. Packages
 
 ### Core
 | Package | Version | Purpose |
@@ -579,7 +639,7 @@ Attacking
 
 ---
 
-## 8. Key Design Decisions
+## 9. Key Design Decisions
 
 | Decision | Rationale |
 |----------|-----------|
@@ -600,7 +660,7 @@ Attacking
 
 ---
 
-## 9. What Has Been Done — Status Matrix
+## 10. What Has Been Done — Status Matrix
 
 | System | Status | Notes |
 |--------|--------|-------|
@@ -633,7 +693,7 @@ Attacking
 
 ---
 
-## 10. What's Missing — Identified Gaps
+## 11. What's Missing — Identified Gaps
 
 > All gaps below are derived from the target vision: a room-based roguelite in the style of *The Binding of Isaac* and *Enter The Gungeon*.
 
@@ -710,7 +770,7 @@ Attacking
 
 ---
 
-## 11. Roadmap — Work Plan
+## 12. Roadmap — Work Plan
 
 > Ordered by dependency. Each phase builds on the previous.
 > Reference: *The Binding of Isaac* (room flow, item rooms, boss fights) / *Enter The Gungeon* (projectile density, dodge mechanics, weapon variety).
@@ -822,7 +882,7 @@ Attacking
 
 ---
 
-## 12. Asset Inventory
+## 13. Asset Inventory
 
 ### ScriptableObject Assets
 
@@ -856,7 +916,7 @@ Attacking
 
 ---
 
-## 13. Technical Notes
+## 14. Technical Notes
 
 ### ModifierCalculator — Add-then-Multiply Pipeline
 
