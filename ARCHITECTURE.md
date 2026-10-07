@@ -1,7 +1,7 @@
 # Project-Roguelite — Architecture & Roadmap
 
 > **Document State**: Alive roadmap — updated during development.
-> **Last Updated**: 2026-09-08
+> **Last Updated**: 2026-10-06
 
 ---
 
@@ -25,7 +25,7 @@
 | &emsp; 4.10 [Enemy AI](#410-enemy-ai-system) | 3-state FSM |
 | &emsp; 4.11 [UI System](#411-ui-system) | Ammo display |
 | &emsp; 4.12 [Debug System](#412-debug-system) | Loggers and testers |
-| &emsp; 4.13 [Object Pool](#413-object-pool-system-planned) | Generic pooling (planned) |
+| &emsp; 4.13 [Object Pool](#413-object-pool-system) | Generic pooling |
 | &emsp; 4.14 [Room System](#414-room-system-planned) | Rooms, doors, map structure (planned) |
 | &emsp; 4.15 [Enemy Types](#415-enemy-types-planned) | Per-type behaviors (planned) |
 | [5. Input System](#5-input-system) | Action bindings |
@@ -145,7 +145,7 @@ The project follows a **composition-over-inheritance** architecture. Entities (`
 | **Pipeline** | `ModifierCalculator` — Add-then-Multiply | Deterministic stat modification across providers |
 | **State Machine** | `EnemyBehavior` FSM (Chasing, SeekingWeapon, Attacking) | Enemy AI decision-making |
 | **Interface Segregation** | `IMoveInput`, `IInteractable`, `IModifierProvider` | Contracts with 1–2 members; classes choose what they implement |
-| **Object Pool** | `ProjectilePool` (planned) | Reuse projectile instances — avoid Instantiate/Destroy GC pressure |
+| **Object Pool** | `ObjectPool<T>` + `PoolManager` | Reuse projectile instances — avoid Instantiate/Destroy GC pressure |
 | **Room Controller** | `RoomController` (planned) | Locks exits, spawns enemies, tracks room clear state |
 | **Template Method** | `EnemyBehavior` base + derived types | Shared FSM skeleton, overridden behavior per enemy type |
 
@@ -153,7 +153,7 @@ The project follows a **composition-over-inheritance** architecture. Entities (`
 
 ```
 Scripts/
-├── Interfaces/          # Contracts (IMoveInput, IInteractable, IModifierProvider, IPoolable)
+├── Interfaces/          # Contracts (IMoveInput, IInteractable, IModifierProvider)
 ├── Entities/            # Composition shells
 │   ├── Player/          # Player.cs
 │   └── Enemy/           # Enemy.cs
@@ -161,7 +161,6 @@ Scripts/
 │   ├── Base/            # Domain-agnostic reusable components
 │   │   ├── HealthRelated/   # Health, HealthVisualFeedback, HealthAudioFeedback
 │   │   ├── Weapon/          # WeaponPickup, WeaponDetection
-│   │   ├── Pool/            # (planned) ObjectPool<T>, IPoolable
 │   │   ├── Interaction.cs
 │   │   ├── LookDirection.cs
 │   │   └── Movement.cs
@@ -192,11 +191,11 @@ Scripts/
 │       ├── RoomData.cs (ScriptableObject)
 │       ├── RoomGenerator.cs
 │       └── RoomType.cs (enum)
-├── Systems/             # (planned) Global managers
-│   ├── GameManager.cs
-│   ├── RunManager.cs
-│   ├── AudioManager.cs
-│   └── ObjectPool.cs
+├── Systems/             # Global managers and services
+│   ├── Pool/              # ObjectPool.cs, PoolManager.cs, IPoolable.cs
+│   ├── GameManager.cs     # (planned)
+│   ├── RunManager.cs      # (planned)
+│   └── AudioManager.cs    # (planned)
 ├── UI/
 │   ├── HUD/             # (planned) HealthBar, RunTimer, AmmoDisplay, ModifierDisplay
 │   ├── Menus/           # (planned) MainMenu, PauseMenu, GameOverScreen, SettingsMenu
@@ -461,25 +460,30 @@ Attacking ────► SeekingWeapon (weapon empty / dropped)
 
 ---
 
-### 4.13 Object Pool System (Planned)
+### 4.13 Object Pool System
 
 > Reference: *Enter The Gungeon* — heavy bullet usage demands pooling.
 
-**Files**: `ObjectPool.cs`, `IPoolable.cs`
+**Files**: `Scripts/Systems/Pool/ObjectPool.cs`, `PoolManager.cs`, `IPoolable.cs` (namespace `Systems.Pool`)
 
 | Component | Role |
 |-----------|------|
-| `ObjectPool<T>` | Generic pool — pre-warm, Get, Return. Manages inactive instances |
-| `IPoolable` | Interface — `OnGetFromPool()`, `OnReturnToPool()` |
+| `ObjectPool<T>` | Generic pool where `T : Component` — `Stack<T>` of available instances + `HashSet<T>` of in-use instances (O(1) double-return guard). `Get()`, `Release()`, `Preload()` |
+| `PoolManager` | Scene singleton (`PoolManager.Instance`). Serialized entries (prefab + prewarm count), fail-fast validation at `Awake`, owns the `Pools` container GameObject |
+| `IPoolable` | Interface — `OnGetFromPool()`, `OnReturnToPool()` callbacks |
 
 **Design**:
-- Pool is a `Stack<T>` per prefab type
-- Pre-warm at run start or lazily on first request
-- Projectiles implement `IPoolable` — `OnGetFromPool()` re-enables movement; `OnReturnToPool()` disables and resets
-- `ProjectileFireStrategy` uses pool instead of `Instantiate`/`Destroy`
-- Pool parented under a container `GameObject` to keep hierarchy clean
+- `PoolManager.Awake()` validates entries (throws on null prefab or duplicate) and eagerly instantiates each entry's prewarm count as inactive seed instances
+- The strongly typed `ObjectPool<T>` is created on first `Get<T>()` and absorbs the seed instances (avoids reflection; expansion is lazy)
+- Expansion beyond prewarm is unlimited — a `MaxSize` cap is deferred to the polish phase
+- Pooled instances are parented under a `Pools` container child of the `PoolManager`; the manager nulls `Instance` in `OnDestroy` so scene unloads leave no stale statics
+- `Projectile` implements `IPoolable` — zeroes rigidbody velocity on get/return; returns itself to the pool on hit **or** after its 5 s lifetime instead of `Destroy`
+- `ProjectileFireStrategy` fetches via `PoolManager.Instance.Get(...)` — throws `MissingReferenceException` if the scene has no `PoolManager` or the prefab is not registered (fail-fast)
+- Registered entries: `Projectile` prefab, prewarm 32 (pool grows on demand)
 
-**Status**: 🔲 Not started
+**Known limitations**: pool growth is unbounded; seeds for a registered-but-never-used prefab stay inactive in the scene.
+
+**Status**: ✅ Complete (projectiles pooled; enemies/pickups can register entries later)
 
 ---
 
@@ -678,7 +682,7 @@ Attacking
 | Enemy AI | ✅ Done | 3-state FSM, weapon seeking, combat |
 | Weapon UI | ✅ Done | Ammo display (minimal) |
 | Debug Tools | ✅ Done | Loggers + testers for all systems |
-| Object Pool | 🔲 Planned | Generic pool for projectiles and entities |
+| Object Pool | ✅ Done | `Systems/Pool` — `ObjectPool<T>` + `PoolManager`; projectiles pooled (prewarm 32, grows on demand) |
 | Room System | 🔲 Planned | Room types, doors, lock/clear mechanic |
 | Map Structure | 🔲 Planned | Linear room sequence with transitions |
 | Enemy Types | 🔲 Planned | Chaser, Shooter, Rusher, etc. |
@@ -703,7 +707,6 @@ Attacking
 |-----|----------|-------------|
 | **Player Death Handling** | 🔴 High | `Health.Died` fires but nothing consumes it — no game over, no run end |
 | **Enemy Death Handling** | 🔴 High | No destroy, no loot drop, no death feedback |
-| **Object Pool** | 🔴 High | Projectiles use Instantiate/Destroy — GC spikes under heavy fire |
 | **Room System** | 🔴 High | No rooms, no doors, no lock/clear mechanic — the core spatial loop is missing |
 | **Room Types** | 🔴 High | No combat rooms, item rooms, or boss room |
 | **Enemy Spawner** | 🔴 High | Enemies manually placed — no wave/room-based spawning |
@@ -781,7 +784,7 @@ Attacking
 
 | # | Task | Description | Depends On |
 |---|------|-------------|------------|
-| 1.1 | **Object Pool** | Generic `ObjectPool<T>` + `IPoolable` interface. Pre-warm, get, return. | — |
+| 1.1 | **Object Pool** ✅ | Generic `ObjectPool<T>` + `IPoolable` interface. Pre-warm, get, return. | — |
 | 1.2 | **Game State Manager** | Singleton: `MainMenu`, `Running`, `Paused`, `GameOver`. Scene-agnostic. | — |
 | 1.3 | **Run Manager** | Tracks run timer, current room, run stats. Consumes GameState. | 1.2 |
 | 1.4 | **Scene Flow** | Bootstrap → MainMenu → Gameplay. `SceneManager.LoadSceneAsync`. | 1.2 |
@@ -802,7 +805,7 @@ Attacking
 | 2.4 | **Run Timer UI** | Elapsed time display. Binds to RunManager. | 1.3 |
 | 2.5 | **Weapon HUD** | Weapon icon, name, ammo/reserve, reload indicator. | — |
 | 2.6 | **Game Over Screen** | Run stats (time, kills, rooms cleared), Restart, Main Menu buttons. | 2.2, 1.2 |
-| 2.7 | **Projectile Pooling** | Refactor `ProjectileFireStrategy` to use `ObjectPool<Projectile>`. | 1.1 |
+| 2.7 | **Projectile Pooling** ✅ | Refactor `ProjectileFireStrategy` to use `ObjectPool<Projectile>`. | 1.1 |
 | 2.8 | **Screen Shake** | Camera shake on fire, hit, death. Coroutine-based. | — |
 
 ### Phase 3: Room System (🔴 Critical)

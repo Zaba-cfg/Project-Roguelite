@@ -1,5 +1,6 @@
 using System;
 using Components.Weapons;
+using Systems.Pool;
 using UnityEngine;
 
 namespace Components.Projectile
@@ -14,7 +15,10 @@ namespace Components.Projectile
         {
             if (!_projectile)
                 throw new InvalidOperationException($"{name} is missing a projectile.");
-            
+
+            if (PoolManager.Instance == null)
+                throw new MissingReferenceException($"{name} requires a PoolManager in the scene to spawn projectiles.");
+
             float angleStep = context.AttackCount > 1 ? context.SpreadAngle / (context.AttackCount - 1) : 0f;
             
             float startAngle = -context.SpreadAngle / 2f;
@@ -25,7 +29,8 @@ namespace Components.Projectile
                 
                 Vector2 projectileDirection = Quaternion.Euler(0f, 0f, angle) * context.Direction;
                 
-                Projectile newProjectile = Instantiate(_projectile, context.Weapon.Muzzle.position, Quaternion.identity);
+                Projectile newProjectile = PoolManager.Instance.Get(
+                    _projectile, context.Weapon.Muzzle.position, Quaternion.identity);
 
                 newProjectile.Initialize(projectileDirection, context.Weapon.Damage, context.Weapon.Owner);
             }
